@@ -8,95 +8,103 @@
 export const R_GAS = 8.314; // J/(mol·K)
 
 // ---------------------------------------------------------------------------
-// Vaccine database
+// Vaccine database  (A values derived from shelf-life specifications)
 // ---------------------------------------------------------------------------
 export const VACCINE_DB = {
   DPT: {
     name: "DPT (Diphtheria-Pertussis-Tetanus)",
     Ea_mean: 83000,
     Ea_std: 4000,
-    A: 3.37e10,
+    A: 4.994e10,
     A_log_std: 0.15,
     shelf_life_hours: 17280,
     ref_temp_K: 278.15,
     min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
     freeze_sensitive: true,
   },
   OPV: {
     name: "Oral Polio Vaccine",
     Ea_mean: 112000,
     Ea_std: 6000,
-    A: 5.2e14,
+    A: 9.878e16,
     A_log_std: 0.20,
     shelf_life_hours: 4380,
     ref_temp_K: 278.15,
     min_potency_threshold: 0.67,
+    minPotencyThreshold: 0.67,
     freeze_sensitive: false,
   },
   MMR: {
     name: "Measles-Mumps-Rubella",
     Ea_mean: 108000,
     Ea_std: 7000,
-    A: 8.1e15,
+    A: 4.880e15,
     A_log_std: 0.22,
     shelf_life_hours: 8760,
     ref_temp_K: 278.15,
     min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
     freeze_sensitive: false,
   },
   BCG: {
     name: "Bacillus Calmette-Guérin",
     Ea_mean: 90000,
     Ea_std: 5000,
-    A: 1.2e12,
+    A: 2.033e12,
     A_log_std: 0.18,
     shelf_life_hours: 8760,
     ref_temp_K: 278.15,
     min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
     freeze_sensitive: false,
   },
   HepB: {
     name: "Hepatitis B",
     Ea_mean: 70000,
     Ea_std: 4500,
-    A: 2.8e9,
+    A: 1.807e8,
     A_log_std: 0.16,
     shelf_life_hours: 17280,
     ref_temp_K: 278.15,
     min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
     freeze_sensitive: true,
   },
   IPV: {
     name: "Inactivated Polio Vaccine",
     Ea_mean: 92000,
     Ea_std: 5500,
-    A: 4.6e12,
+    A: 2.447e12,
     A_log_std: 0.19,
     shelf_life_hours: 17280,
     ref_temp_K: 278.15,
     min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
     freeze_sensitive: true,
   },
   Rotavirus: {
     name: "Rotavirus Vaccine",
     Ea_mean: 100000,
     Ea_std: 6000,
-    A: 9.3e13,
+    A: 2.188e15,
     A_log_std: 0.21,
     shelf_life_hours: 17520,
     ref_temp_K: 258.15,
     min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
     freeze_sensitive: false,
   },
   PCV: {
     name: "Pneumococcal Conjugate Vaccine",
     Ea_mean: 77000,
     Ea_std: 4000,
-    A: 1.5e10,
+    A: 3.729e9,
     A_log_std: 0.15,
     shelf_life_hours: 17280,
     ref_temp_K: 278.15,
     min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
     freeze_sensitive: true,
   },
 };
@@ -105,11 +113,11 @@ export const VACCINE_DB = {
 // Gaussian random (Box-Muller transform)
 // ---------------------------------------------------------------------------
 export function gaussianRandom(mean = 0, std = 1) {
-  let u1, u2;
+  let u1;
   do {
     u1 = Math.random();
   } while (u1 === 0);
-  u2 = Math.random();
+  const u2 = Math.random();
   const z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
   return mean + std * z;
 }
@@ -155,7 +163,7 @@ export function integrateDegradation(timestamps, temperaturesC, Ea, A) {
 /**
  * @param {number[]} timestamps
  * @param {number[]} temperaturesC
- * @param {Object}   params          entry from VACCINE_DB
+ * @param {Object|string} paramsOrKey  entry from VACCINE_DB or vaccine key string
  * @param {number}   nSamples
  * @param {number}   loggerAccuracyC  1-sigma logger error
  * @returns {number[]} array of potency fractions
@@ -163,20 +171,23 @@ export function integrateDegradation(timestamps, temperaturesC, Ea, A) {
 export function monteCarloSamples(
   timestamps,
   temperaturesC,
-  params,
+  paramsOrKey,
   nSamples = 1000,
   loggerAccuracyC = 0.5
 ) {
+  const params = typeof paramsOrKey === "string"
+    ? VACCINE_DB[paramsOrKey]
+    : paramsOrKey;
+
+  if (!params) throw new Error(`Unknown vaccine: ${paramsOrKey}`);
+
   const samples = [];
   const logA = Math.log(params.A);
 
   for (let s = 0; s < nSamples; s++) {
     const Ea = gaussianRandom(params.Ea_mean, params.Ea_std);
     const A = Math.exp(gaussianRandom(logA, params.A_log_std));
-
-    // Perturb temperatures
     const pertTemps = temperaturesC.map((t) => t + gaussianRandom(0, loggerAccuracyC));
-
     const D = integrateDegradation(timestamps, pertTemps, Ea, A);
     const potency = Math.min(1.0, Math.max(0.0, Math.exp(-D)));
     samples.push(potency);
@@ -188,6 +199,7 @@ export function monteCarloSamples(
 // Posterior summary
 // ---------------------------------------------------------------------------
 /**
+ * Returns summary with both underscore (Python-compat) and camelCase keys.
  * @param {number[]} samples  potency fractions
  * @returns {Object} summary statistics
  */
@@ -196,12 +208,15 @@ export function computePosteriorSummary(samples) {
   const n = sorted.length;
   const mean = samples.reduce((s, v) => s + v, 0) / n;
   const median = sorted[Math.floor(n / 2)];
-  const variance =
-    samples.reduce((s, v) => s + (v - mean) ** 2, 0) / (n - 1);
+  const variance = samples.reduce((s, v) => s + (v - mean) ** 2, 0) / (n - 1);
   const std = Math.sqrt(variance);
 
-  const percentile = (p) => sorted[Math.floor((p / 100) * n)];
+  const percentile = (p) => sorted[Math.min(Math.floor((p / 100) * n), n - 1)];
 
+  const ci90Lower = percentile(5);
+  const ci90Upper = percentile(95);
+  const ci95Lower = percentile(2.5);
+  const ci95Upper = percentile(97.5);
   const probAbove80 = samples.filter((v) => v >= 0.8).length / n;
   const probAbove67 = samples.filter((v) => v >= 0.67).length / n;
 
@@ -209,10 +224,18 @@ export function computePosteriorSummary(samples) {
     mean,
     median,
     std,
-    ci_90_lower: percentile(5),
-    ci_90_upper: percentile(95),
-    ci_95_lower: percentile(2.5),
-    ci_95_upper: percentile(97.5),
+    // camelCase (mobile app)
+    ci90Lower,
+    ci90Upper,
+    ci95Lower,
+    ci95Upper,
+    probAbove80,
+    probAbove67,
+    // underscore aliases (Python compat)
+    ci_90_lower: ci90Lower,
+    ci_90_upper: ci90Upper,
+    ci_95_lower: ci95Lower,
+    ci_95_upper: ci95Upper,
     prob_above_80pct: probAbove80,
     prob_above_67pct: probAbove67,
   };
@@ -223,21 +246,24 @@ export function computePosteriorSummary(samples) {
 // ---------------------------------------------------------------------------
 /**
  * @param {Object} summary     from computePosteriorSummary
- * @param {string} vaccineKey  key into VACCINE_DB
- * @returns {{ decision: string, confidence: number, meanPotencyPct: number }}
+ * @param {string|Object} vaccineKeyOrParams  key into VACCINE_DB or params object
+ * @returns {{ decision: string, confidence: number, meanPotencyPct: number,
+ *             ci90: number[], explanation: string }}
  */
-export function makeDecision(summary, vaccineKey) {
-  const params = VACCINE_DB[vaccineKey];
-  if (!params) throw new Error(`Unknown vaccine: ${vaccineKey}`);
+export function makeDecision(summary, vaccineKeyOrParams) {
+  const params = typeof vaccineKeyOrParams === "string"
+    ? VACCINE_DB[vaccineKeyOrParams]
+    : vaccineKeyOrParams;
+  if (!params) throw new Error(`Unknown vaccine: ${vaccineKeyOrParams}`);
 
-  const threshold = params.min_potency_threshold;
+  const threshold = params.min_potency_threshold ?? params.minPotencyThreshold ?? 0.80;
   let p_ok;
   if (threshold >= 0.8) {
-    p_ok = summary.prob_above_80pct;
+    p_ok = summary.probAbove80 ?? summary.prob_above_80pct;
   } else if (threshold >= 0.67) {
-    p_ok = summary.prob_above_67pct;
+    p_ok = summary.probAbove67 ?? summary.prob_above_67pct;
   } else {
-    p_ok = summary.prob_above_80pct; // fallback
+    p_ok = summary.probAbove80 ?? summary.prob_above_80pct;
   }
 
   let decision;
@@ -249,10 +275,31 @@ export function makeDecision(summary, vaccineKey) {
     decision = "DISCARD";
   }
 
+  const meanPct = (summary.mean * 100).toFixed(1);
+  const lo = ((summary.ci90Lower ?? summary.ci_90_lower) * 100).toFixed(1);
+  const hi = ((summary.ci90Upper ?? summary.ci_90_upper) * 100).toFixed(1);
+  const threshPct = (threshold * 100).toFixed(0);
+
+  const explanations = {
+    USE: `Estimated potency ${meanPct}% (90% CI: ${lo}–${hi}%). ` +
+         `Probability of meeting the ${threshPct}% threshold: ${(p_ok * 100).toFixed(0)}%. ` +
+         `This batch is likely potent. Safe to use.`,
+    INVESTIGATE: `Estimated potency ${meanPct}% (90% CI: ${lo}–${hi}%). ` +
+                 `There is some uncertainty (${(p_ok * 100).toFixed(0)}% probability of meeting threshold). ` +
+                 `Check VVM indicator and consult supervisor before administration.`,
+    DISCARD: `Estimated potency ${meanPct}% (90% CI: ${lo}–${hi}%). ` +
+             `Only ${(p_ok * 100).toFixed(0)}% probability of meeting the ${threshPct}% threshold. ` +
+             `Do not administer. Discard this batch.`,
+  };
+
   return {
     decision,
     confidence: p_ok,
     meanPotencyPct: summary.mean * 100,
-    ci90: [summary.ci_90_lower * 100, summary.ci_90_upper * 100],
+    ci90: [
+      (summary.ci90Lower ?? summary.ci_90_lower) * 100,
+      (summary.ci90Upper ?? summary.ci_90_upper) * 100,
+    ],
+    explanation: explanations[decision],
   };
 }
