@@ -1,21 +1,22 @@
-import { useState, createContext, useContext } from 'react';
+/**
+ * useTranslation hook and LangContext for ColdGuard i18n.
+ */
+
+import React, { useContext, createContext } from 'react';
 import en from './en';
 import hi from './hi';
 
-const translations = { en, hi };
+export const LangContext = createContext({ lang: 'en', setLang: () => {} });
 
-const LangContext = createContext({ lang: 'en', setLang: () => {} });
-
-export function useLang() {
-  return useContext(LangContext);
-}
+const TRANSLATIONS = { en, hi };
 
 export function useTranslation() {
-  const { lang } = useLang();
-  const dict = translations[lang] || translations.en;
-  return {
-    t: (key) => dict[key] || en[key] || key,
-  };
-}
+  const { lang } = useContext(LangContext);
+  const strings = TRANSLATIONS[lang] || TRANSLATIONS.en;
 
-export { LangContext };
+  function t(key) {
+    return strings[key] ?? key;
+  }
+
+  return { t, lang };
+}
