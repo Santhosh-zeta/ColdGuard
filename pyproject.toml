@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "coldguard"
+version = "0.1.0"
+description = "Kinetic-Bayesian vaccine potency estimation for cold chain management"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26.0",
+    "scipy>=1.11.0",
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+    "plotly>=5.15.0",
+    "streamlit>=1.25.0",
+    "reportlab>=4.0.0",
+    "pydantic>=2.0.0",
+    "python-dateutil>=2.8.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4.0", "jupyter>=1.0.0"]
+
+[tool.setuptools.packages.find]
+exclude = ["tests*", "notebooks*"]

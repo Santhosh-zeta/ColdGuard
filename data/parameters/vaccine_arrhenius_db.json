@@ -1,0 +1,126 @@
+{
+  "_metadata": {
+    "description": "Arrhenius kinetic parameters for UIP vaccines used in ColdGuard",
+    "version": "1.0.0",
+    "units": {
+      "Ea_mean": "J/mol",
+      "Ea_std": "J/mol",
+      "A": "hr^-1",
+      "shelf_life_hours": "hours",
+      "ref_temp_K": "Kelvin"
+    },
+    "primary_sources": [
+      "WHO TRS 987 (2014)",
+      "WHO EPI Technical Notes (2012–2016)",
+      "PATH Vaccine Stability Studies (2015–2019)",
+      "Galazka et al. 1998, Bull WHO",
+      "Zipursky et al. 2011, BMJ"
+    ]
+  },
+  "vaccines": {
+    "DPT": {
+      "name": "DPT (Diphtheria-Pertussis-Tetanus)",
+      "Ea_mean": 83000,
+      "Ea_std": 4000,
+      "A": 3.37e10,
+      "A_log_std": 0.15,
+      "shelf_life_hours": 17280,
+      "ref_temp_K": 278.15,
+      "min_potency_threshold": 0.80,
+      "freeze_sensitive": true,
+      "source_citation": "WHO TRS 987 (2014); Galloway et al. 2016",
+      "notes": "Adsorbed DPT. Pertussis component is most heat-labile."
+    },
+    "OPV": {
+      "name": "Oral Polio Vaccine",
+      "Ea_mean": 112000,
+      "Ea_std": 6000,
+      "A": 5.2e14,
+      "A_log_std": 0.20,
+      "shelf_life_hours": 4380,
+      "ref_temp_K": 278.15,
+      "min_potency_threshold": 0.67,
+      "freeze_sensitive": false,
+      "source_citation": "WHO TRS 941 (2007); Asturias et al. 2008",
+      "notes": "Trivalent / bOPV. Type 3 most heat-sensitive. −20°C long-term storage."
+    },
+    "MMR": {
+      "name": "Measles-Mumps-Rubella",
+      "Ea_mean": 108000,
+      "Ea_std": 7000,
+      "A": 8.1e15,
+      "A_log_std": 0.22,
+      "shelf_life_hours": 8760,
+      "ref_temp_K": 278.15,
+      "min_potency_threshold": 0.80,
+      "freeze_sensitive": false,
+      "source_citation": "Galazka et al. 1998, Bull WHO; Chen et al. 2018",
+      "notes": "Lyophilised; reconstituted vaccine must be discarded within 6 hours."
+    },
+    "BCG": {
+      "name": "Bacillus Calmette-Guérin",
+      "Ea_mean": 90000,
+      "Ea_std": 5000,
+      "A": 1.2e12,
+      "A_log_std": 0.18,
+      "shelf_life_hours": 8760,
+      "ref_temp_K": 278.15,
+      "min_potency_threshold": 0.80,
+      "freeze_sensitive": false,
+      "source_citation": "WHO EPI Tech Note BCG 2012",
+      "notes": "Lyophilised live attenuated. Reconstituted vials discard after 4–6 hours."
+    },
+    "HepB": {
+      "name": "Hepatitis B",
+      "Ea_mean": 70000,
+      "Ea_std": 4500,
+      "A": 2.8e9,
+      "A_log_std": 0.16,
+      "shelf_life_hours": 17280,
+      "ref_temp_K": 278.15,
+      "min_potency_threshold": 0.80,
+      "freeze_sensitive": true,
+      "source_citation": "PATH HepB Stability Study 2017",
+      "notes": "Recombinant surface antigen (HBsAg). Highly freeze-sensitive."
+    },
+    "IPV": {
+      "name": "Inactivated Polio Vaccine",
+      "Ea_mean": 92000,
+      "Ea_std": 5500,
+      "A": 4.6e12,
+      "A_log_std": 0.19,
+      "shelf_life_hours": 17280,
+      "ref_temp_K": 278.15,
+      "min_potency_threshold": 0.80,
+      "freeze_sensitive": true,
+      "source_citation": "WHO EPI Tech Note IPV 2015",
+      "notes": "Inactivated Salk vaccine. All three types modelled together."
+    },
+    "Rotavirus": {
+      "name": "Rotavirus Vaccine",
+      "Ea_mean": 100000,
+      "Ea_std": 6000,
+      "A": 9.3e13,
+      "A_log_std": 0.21,
+      "shelf_life_hours": 17520,
+      "ref_temp_K": 258.15,
+      "min_potency_threshold": 0.80,
+      "freeze_sensitive": false,
+      "source_citation": "Rotarix/RotaTeq product insert; PATH Rota Study 2016",
+      "notes": "Parameters apply to liquid formulations (Rotarix). ref_temp is −15°C for frozen storage."
+    },
+    "PCV": {
+      "name": "Pneumococcal Conjugate Vaccine",
+      "Ea_mean": 77000,
+      "Ea_std": 4000,
+      "A": 1.5e10,
+      "A_log_std": 0.15,
+      "shelf_life_hours": 17280,
+      "ref_temp_K": 278.15,
+      "min_potency_threshold": 0.80,
+      "freeze_sensitive": true,
+      "source_citation": "Prevnar 13 product insert; PATH PCV Stability Study 2018",
+      "notes": "Polysaccharide conjugate. Aluminium adjuvant highly freeze-sensitive."
+    }
+  }
+}

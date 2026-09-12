@@ -1,0 +1,55 @@
+{
+  "_metadata": {
+    "description": "Statistical distributions for cold-chain excursion modelling",
+    "sources": [
+      "Matthias et al. 2007, Vaccine",
+      "Kartoglu et al. 2010, WHO Cold Chain Guidelines",
+      "WHO/PQS Temperature Monitoring Report 2019"
+    ]
+  },
+  "excursion_temperature": {
+    "distribution": "truncated_normal",
+    "min_C": 8.0,
+    "max_C": 45.0,
+    "mean_C": 18.5,
+    "std_C": 7.2,
+    "notes": "Above-range (warm) excursions only; freeze events handled separately"
+  },
+  "excursion_duration": {
+    "distribution": "lognormal",
+    "mean_hours": 3.8,
+    "std_hours": 3.1,
+    "lognormal_mu": 1.08,
+    "lognormal_sigma": 0.78,
+    "p95_hours": 12.0,
+    "notes": "Duration of a single excursion event"
+  },
+  "freeze_temperature": {
+    "distribution": "truncated_normal",
+    "min_C": -20.0,
+    "max_C": -0.5,
+    "mean_C": -3.5,
+    "std_C": 3.0,
+    "notes": "Temperature during a freeze event"
+  },
+  "freeze_duration": {
+    "distribution": "lognormal",
+    "mean_hours": 1.2,
+    "std_hours": 0.9,
+    "lognormal_mu": 0.07,
+    "lognormal_sigma": 0.65,
+    "p95_hours": 4.0,
+    "notes": "Duration of a single freeze event"
+  },
+  "inter_excursion_interval": {
+    "distribution": "exponential",
+    "mean_days": 5.0,
+    "notes": "Time between successive warm excursion events (days)"
+  },
+  "season_correction": {
+    "summer_multiplier": 1.4,
+    "winter_multiplier": 0.7,
+    "monsoon_multiplier": 1.1,
+    "notes": "Seasonal correction factors applied to excursion_temperature mean"
+  }
+}
