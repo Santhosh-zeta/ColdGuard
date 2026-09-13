@@ -117,4 +117,15 @@ VACCINE_DB: Dict[str, VaccineParams] = {
         min_potency_threshold=0.80,
         freeze_sensitive=True,
     ),
+    "YF": VaccineParams(
+        name="Yellow Fever Vaccine",
+        Ea_mean=110_000,
+        Ea_std=7_000,
+        A=5.916e15,     # derived: 24-month shelf life at 5°C to 80% potency
+        A_log_std=0.20,
+        shelf_life_hours=17_280,    # 720 days = 2 years at 2–8°C
+        ref_temp_K=278.15,          # 5°C
+        min_potency_threshold=0.80,
+        freeze_sensitive=False,
+    ),
 }

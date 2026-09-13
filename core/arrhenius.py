@@ -204,6 +204,66 @@ def mkt_potency_estimate(
 # Parameter derivation
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Freeze damage accumulator
+# ---------------------------------------------------------------------------
+
+# First-order rate constant for freeze-induced potency loss (hr^-1).
+# Based on WHO/GPV/98.07: freeze-sensitive vaccines lose ~40% potency per hour
+# of freeze exposure at or below 0°C.
+_FREEZE_DAMAGE_RATE = 0.5  # hr^-1
+
+
+def compute_freeze_damage_fraction(
+    timestamps: np.ndarray,
+    temperatures_C: np.ndarray,
+    vaccine_params: VaccineParams,
+    freeze_threshold_C: float = 0.0,
+) -> float:
+    """Compute the potency retention factor due to freeze exposure.
+
+    For non-freeze-sensitive vaccines returns 1.0 (no freeze damage).
+    For freeze-sensitive vaccines applies first-order freeze kinetics:
+    ``retention = exp(-k_freeze * total_freeze_hours)``.
+
+    Parameters
+    ----------
+    timestamps : array-like
+        Unix timestamps in seconds.
+    temperatures_C : array-like
+        Temperature readings in °C.
+    vaccine_params : VaccineParams
+        Must have ``freeze_sensitive`` attribute.
+    freeze_threshold_C : float
+        Temperature below which freeze damage is accumulated. Default 0.0°C.
+
+    Returns
+    -------
+    float
+        Retained potency fraction in [0, 1] attributable to freeze damage only.
+        Multiply with thermal degradation potency for the combined estimate.
+    """
+    if not vaccine_params.freeze_sensitive:
+        return 1.0
+
+    tc = np.asarray(temperatures_C, dtype=float)
+    ts = np.asarray(timestamps, dtype=float)
+
+    if len(ts) < 2:
+        return 1.0
+
+    frozen = tc < freeze_threshold_C
+    if not np.any(frozen):
+        return 1.0
+
+    # Accumulate time (hours) in segments where at least one endpoint is frozen
+    dt_hours = np.diff(ts) / 3600.0
+    segment_frozen = frozen[:-1] | frozen[1:]
+    total_freeze_hours = float(np.sum(dt_hours[segment_frozen]))
+
+    return float(math.exp(-_FREEZE_DAMAGE_RATE * total_freeze_hours))
+
+
 def derive_A_from_shelf_life(
     shelf_life_hours: float,
     T_ref_C: float,

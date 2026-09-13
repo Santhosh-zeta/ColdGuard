@@ -17,6 +17,7 @@ from .arrhenius import (
     compute_segment_attribution,
     compute_mkt,
     mkt_potency_estimate,
+    compute_freeze_damage_fraction,
 )
 from .bayesian import monte_carlo_potency_distribution, compute_posterior_summary
 from .decision import make_decision, DecisionOutput
@@ -267,7 +268,9 @@ def run_analysis(
     logging_gaps = detect_logging_gaps(ts)
 
     # Point estimates
-    point_potency = compute_potency(ts, tc, params.Ea_mean, params.A, initial_potency)
+    thermal_potency = compute_potency(ts, tc, params.Ea_mean, params.A, initial_potency)
+    freeze_retention = compute_freeze_damage_fraction(ts, tc, params)
+    point_potency = thermal_potency * freeze_retention
     mkt_C = compute_mkt(tc, Ea=params.Ea_mean)
     mkt_pot = mkt_potency_estimate(ts, tc, params)
     segments = compute_segment_attribution(ts, tc, params.Ea_mean, params.A)
@@ -294,6 +297,7 @@ def run_analysis(
         "freeze_events": freeze_events,
         "logging_gaps": logging_gaps,
         "point_estimate_potency": point_potency,
+        "freeze_damage_retention": freeze_retention,
         "mkt_C": mkt_C,
         "mkt_potency_estimate": mkt_pot,
         "segment_attribution": segments,

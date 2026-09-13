@@ -5,10 +5,11 @@
 import React, { useContext, createContext } from 'react';
 import en from './en';
 import hi from './hi';
+import ta from './ta';
 
 export const LangContext = createContext({ lang: 'en', setLang: () => {} });
 
-const TRANSLATIONS = { en, hi };
+const TRANSLATIONS = { en, hi, ta };
 
 export function useTranslation() {
   const { lang } = useContext(LangContext);
