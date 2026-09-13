@@ -11,7 +11,7 @@
 [![Tests](https://img.shields.io/badge/Tests-37%20passing-22c55e.svg)](tests/)
 [![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Android%20%7C%20CLI-8b5cf6.svg)]()
 [![Offline](https://img.shields.io/badge/Works-Offline-f59e0b.svg)]()
-[![Hindi](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी-ef4444.svg)]()
+[![Hindi](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी%20%7C%20తెలుగు-ef4444.svg)]()
 
 <br/>
 
@@ -242,7 +242,7 @@ ColdGuard/
 │       ├── engine/arrhenius.js     Full offline JS engine (1000-sample MC)
 │       ├── screens/                Input · Processing · Results screens
 │       ├── components/             DecisionBanner · PotencyChart · Timeline
-│       └── i18n/                   English + Hindi translations
+│       └── i18n/                   English + Hindi + Telugu translations
 │
 ├── 🔬 simulation/                  Protocol comparison study
 │   ├── cold_chain_generator.py     District · PHC · Outreach profiles
