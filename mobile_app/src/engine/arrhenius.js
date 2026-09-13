@@ -119,6 +119,18 @@ export const VACCINE_DB = {
     minPotencyThreshold: 0.80,
     freeze_sensitive: false,
   },
+  JE: {
+    name: "Japanese Encephalitis Vaccine",
+    Ea_mean: 95000,
+    Ea_std: 5500,
+    A: 8.89e12,
+    A_log_std: 0.18,
+    shelf_life_hours: 17280,
+    ref_temp_K: 278.15,
+    min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
+    freeze_sensitive: false,
+  },
 };
 
 // ---------------------------------------------------------------------------

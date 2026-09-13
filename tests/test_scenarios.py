@@ -137,6 +137,22 @@ def test_freeze_damage_accumulator_reduces_potency():
     assert retention_yf == 1.0, "Non-freeze-sensitive YF should have retention == 1.0"
 
 
+def test_je_vaccine_normal_storage():
+    """Japanese Encephalitis in normal cold storage should produce a USE decision."""
+    path = DATA_DIR / "je_normal_storage.csv"
+    if not path.exists():
+        pytest.skip("je_normal_storage.csv not found")
+    ts, temps = parse_csv_log(path)
+    result = run_analysis("JE", ts, temps, n_mc_samples=500)
+    d = result["decision_output"]
+    p = result["posterior_summary"]
+    assert d.decision == Decision.USE, (
+        f"Expected USE for JE normal storage, got {d.decision.value} "
+        f"(potency={p['mean']*100:.1f}%)"
+    )
+    assert p["mean"] >= 0.97, f"JE potency {p['mean']*100:.1f}% too low for 3-day normal storage"
+
+
 def test_freeze_damage_reflected_in_run_analysis():
     """run_analysis on freeze_event.csv for DPT should include freeze_damage_retention < 1."""
     path = DATA_DIR / "freeze_event.csv"
