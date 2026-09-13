@@ -1,0 +1,12 @@
+# Default owner for everything
+*                               @Santhosh-zeta
+
+# Scientific engine — needs careful review
+core/                           @Santhosh-zeta
+mobile_app/src/engine/          @Santhosh-zeta
+
+# Translations — maintainer reviews all i18n changes
+mobile_app/src/i18n/            @Santhosh-zeta
+
+# CI/CD workflows
+.github/workflows/              @Santhosh-zeta

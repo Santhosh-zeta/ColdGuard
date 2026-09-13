@@ -8,10 +8,12 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11+-3b82f6.svg)](https://python.org)
-[![Tests](https://img.shields.io/badge/Tests-37%20passing-22c55e.svg)](tests/)
+[![CI](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/test.yml/badge.svg)](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/test.yml)
+[![Lint](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/lint.yml/badge.svg)](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/lint.yml)
 [![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Android%20%7C%20CLI-8b5cf6.svg)]()
 [![Offline](https://img.shields.io/badge/Works-Offline-f59e0b.svg)]()
-[![Hindi](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी-ef4444.svg)]()
+[![Languages](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी%20%7C%20தமிழ்%20%7C%20తెలుగు-ef4444.svg)](mobile_app/src/i18n/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 <br/>
 
@@ -171,6 +173,8 @@ graph LR
         MMR["MMR\nEa = 108 kJ/mol\nMin: 80%"]
         BCG["BCG\nEa = 90 kJ/mol\nMin: 80%"]
         ROTA["Rotavirus\nEa = 100 kJ/mol\nMin: 80%"]
+        YF["Yellow Fever\nEa = 110 kJ/mol\nMin: 80%"]
+        JE["Jap. Encephalitis\nEa = 95 kJ/mol\nMin: 80%"]
     end
 ```
 
@@ -184,6 +188,8 @@ graph LR
 | IPV | Inactivated Polio Vaccine | 92 ± 5.5 | 24 months | 5°C | 80% | ⚠️ Yes |
 | Rotavirus | Rotavirus Vaccine | 100 ± 6 | 24 months | −15°C | 80% | ✅ No |
 | PCV | Pneumococcal Conjugate Vaccine | 77 ± 4 | 24 months | 5°C | 80% | ⚠️ Yes |
+| YF | Yellow Fever Vaccine | 110 ± 7 | 24 months | 5°C | 80% | ✅ No |
+| JE | Japanese Encephalitis Vaccine | 95 ± 5.5 | 24 months | 5°C | 80% | ✅ No |
 
 ---
 
@@ -230,7 +236,7 @@ ColdGuard/
 │   ├── arrhenius.py                Arrhenius integrator · MKT · segment attribution
 │   ├── bayesian.py                 Monte Carlo uncertainty propagation
 │   ├── decision.py                 USE/INVESTIGATE/DISCARD · audit hash
-│   ├── vaccine_params.py           8 UIP vaccines with derived A values
+│   ├── vaccine_params.py           10 vaccines with derived A values
 │   └── utils.py                    Parsing · validation · run_analysis pipeline
 │
 ├── 🌐 web_app/                     Streamlit web application
@@ -242,7 +248,7 @@ ColdGuard/
 │       ├── engine/arrhenius.js     Full offline JS engine (1000-sample MC)
 │       ├── screens/                Input · Processing · Results screens
 │       ├── components/             DecisionBanner · PotencyChart · Timeline
-│       └── i18n/                   English + Hindi translations
+│       └── i18n/                   English · Hindi · Tamil · Telugu translations
 │
 ├── 🔬 simulation/                  Protocol comparison study
 │   ├── cold_chain_generator.py     District · PHC · Outreach profiles
@@ -253,7 +259,7 @@ ColdGuard/
 │   └── calibration_analysis.py    Coverage · RMSE · Bland-Altman
 │
 ├── 📓 notebooks/                   Jupyter analysis
-│   ├── 01_arrhenius_exploration    Rate curves for all 8 vaccines
+│   ├── 01_arrhenius_exploration    Rate curves for all 10 vaccines
 │   ├── 02_parameter_derivation     A values from shelf-life derivation
 │   ├── 03_validation_analysis      Literature comparison
 │   ├── 04_simulation_study         1000-scenario protocol comparison
@@ -273,11 +279,11 @@ ColdGuard/
 │   ├── API.md                      Complete public API reference
 │   └── USER_GUIDE.md              Step-by-step guide for field staff
 │
-├── 🧪 tests/                       37 tests · all passing
+├── 🧪 tests/                       41 tests · all passing
 │   ├── test_arrhenius.py           8 tests
 │   ├── test_bayesian.py            7 tests
 │   ├── test_decision.py            8 tests
-│   └── test_scenarios.py           14 scenario-level integration tests
+│   └── test_scenarios.py           18 scenario-level integration tests
 │
 ├── coldguard_cli.py                Command-line runner
 └── .github/workflows/test.yml      CI: runs all tests on every push
@@ -321,13 +327,16 @@ timeline
     section v1.0 — Current
         Scientific engine        : Arrhenius + Monte Carlo
         Web + Mobile apps        : Streamlit + React Native
-        37 passing tests         : Full test suite
+        41 passing tests         : Full test suite
         CLI + CI pipeline        : GitHub Actions
+        10 vaccines              : DPT OPV MMR BCG HepB IPV Rotavirus PCV YF JE
+        4 languages              : English Hindi Tamil Telugu
+        Freeze damage model      : First-order kinetics accumulator
     section v1.1 — Near Term
         Real validation data     : Source from WHO literature
-        Freeze damage model      : Quantify freeze accumulation
         QR code scanner          : Camera-based logger ID scan
-        Hindi review             : Native speaker review
+        More languages           : Kannada Bengali
+        PDF report               : Shareable audit-trail report
     section v1.2 — Research
         Full paper               : Submit to journal/conference
         eVIN integration         : National cold chain API
@@ -345,8 +354,8 @@ timeline
 #### 🔬 Scientific Quality
 | # | Improvement | Impact | Effort |
 |---|------------|--------|--------|
-| 1 | **Source real validation data** from WHO/GPV/98.07 for all 8 vaccines — replace synthetic circular validation with actual published temperature-potency pairs | 🔴 Critical for publication | High |
-| 2 | **Freeze damage accumulator** — DPT/HepB/IPV/PCV are damaged by freezing; model protein denaturation kinetics from published shake-test data | 🔴 Clinically significant | High |
+| 1 | **Source real validation data** from WHO/GPV/98.07 for all 10 vaccines — replace synthetic circular validation with actual published temperature-potency pairs | 🔴 Critical for publication | High |
+| 2 | ~~**Freeze damage accumulator**~~ ✅ Done — first-order freeze kinetics implemented in `core/arrhenius.py` for all freeze-sensitive vaccines | — | — |
 | 3 | **Derive Eₐ independently** — use two published stability data points per vaccine: `ln(k₁/k₂) = -Eₐ/R · (1/T₁ − 1/T₂)` | 🟡 Strengthens paper | Medium |
 | 4 | **PyMC full Bayesian** — replace Monte Carlo with proper MCMC posterior (PyMC already in requirements); enables formal model comparison | 🟡 Research upgrade | Medium |
 | 5 | **Sensitivity analysis** — show FDR reduction holds under ±10% Eₐ variation; answers the primary reviewer question | 🟡 Paper reviewer ready | Low |
