@@ -139,4 +139,26 @@ VACCINE_DB: Dict[str, VaccineParams] = {
         min_potency_threshold=0.80,
         freeze_sensitive=False,     # lyophilised formulation
     ),
+    "Typhoid": VaccineParams(
+        name="Typhoid (Vi Polysaccharide) Vaccine",
+        Ea_mean=80_000,
+        Ea_std=4_500,
+        A=1.35e10,      # derived: 24-month shelf life at 5°C to 80% potency
+        A_log_std=0.16,
+        shelf_life_hours=17_280,    # 720 days = 2 years at 2–8°C
+        ref_temp_K=278.15,          # 5°C
+        min_potency_threshold=0.80,
+        freeze_sensitive=True,      # Vi-PS aggregates on freeze–thaw cycling
+    ),
+    "MenA": VaccineParams(
+        name="Meningitis A (MenA) Conjugate Vaccine",
+        Ea_mean=85_000,
+        Ea_std=5_000,
+        A=1.18e11,      # derived: 24-month shelf life at 5°C to 80% potency
+        A_log_std=0.18,
+        shelf_life_hours=17_280,    # 720 days = 2 years at 2–8°C
+        ref_temp_K=278.15,          # 5°C
+        min_potency_threshold=0.80,
+        freeze_sensitive=True,      # conjugate vaccines must not be frozen
+    ),
 }

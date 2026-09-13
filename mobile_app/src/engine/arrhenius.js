@@ -131,6 +131,30 @@ export const VACCINE_DB = {
     minPotencyThreshold: 0.80,
     freeze_sensitive: false,
   },
+  Typhoid: {
+    name: "Typhoid (Vi Polysaccharide) Vaccine",
+    Ea_mean: 80000,
+    Ea_std: 4500,
+    A: 1.35e10,
+    A_log_std: 0.16,
+    shelf_life_hours: 17280,
+    ref_temp_K: 278.15,
+    min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
+    freeze_sensitive: true,
+  },
+  MenA: {
+    name: "Meningitis A (MenA) Conjugate Vaccine",
+    Ea_mean: 85000,
+    Ea_std: 5000,
+    A: 1.18e11,
+    A_log_std: 0.18,
+    shelf_life_hours: 17280,
+    ref_temp_K: 278.15,
+    min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
+    freeze_sensitive: true,
+  },
 };
 
 // ---------------------------------------------------------------------------
