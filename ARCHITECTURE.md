@@ -1,4 +1,4 @@
-# ColdGuard — Repository Context for Claude Code
+# ColdGuard — Architecture & Developer Reference
 
 ## What this is
 ColdGuard is a kinetic-Bayesian vaccine potency estimation system for India's

@@ -86,7 +86,7 @@ All notable changes to ColdGuard are documented here. Format follows [Keep a Cha
 - Issue templates: bug report, feature request, vaccine addition
 - Pull request template
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`
-- `CLAUDE.md` — Repository context for AI-assisted development
+- `ARCHITECTURE.md` — Repository context: design decisions, invariants, dev setup
 
 ### Initial Contributors
 - [Santhosh-zeta](https://github.com/Santhosh-zeta) — Project creator and lead developer

@@ -102,7 +102,7 @@ mobile_app/src/     ← React Native app + offline JS engine
 web_app/            ← Streamlit web application
 ```
 
-See [CLAUDE.md](CLAUDE.md) for detailed design decisions and invariants.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design decisions and invariants.
 
 ---
 
@@ -187,7 +187,7 @@ To add a vaccine not currently in `VACCINE_DB`:
 5. Add at least one test in `tests/test_scenarios.py`
 6. Document the parameter source in the PR
 
-See [CLAUDE.md — Adding a new vaccine](CLAUDE.md) for the exact steps.
+See [ARCHITECTURE.md — Adding a new vaccine](ARCHITECTURE.md) for the exact steps.
 
 ---
 
