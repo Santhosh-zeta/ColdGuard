@@ -1,5 +1,6 @@
 """Tests for core.arrhenius — kinetic degradation engine."""
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
@@ -10,11 +11,10 @@ from core.arrhenius import (
     integrate_degradation,
     compute_potency,
     compute_mkt,
-    mkt_potency_estimate,
     derive_A_from_shelf_life,
     compute_segment_attribution,
 )
-from core.vaccine_params import VACCINE_DB, R_GAS
+from core.vaccine_params import VACCINE_DB
 
 
 # ---------------------------------------------------------------------------

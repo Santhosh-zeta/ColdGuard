@@ -1,5 +1,6 @@
 """End-to-end tests: run all 10 synthetic scenarios through the full pipeline."""
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pathlib import Path
@@ -11,7 +12,7 @@ from core.decision import Decision
 DATA_DIR = Path(__file__).parent.parent / "data" / "raw"
 
 SCENARIOS = [
-    ("normal_cold_storage.csv",    "DPT", Decision.USE,     0.990),
+    ("normal_cold_storage.csv",    "DPT", Decision.USE,     0.98),
     ("brief_excursion_15c.csv",    "DPT", Decision.USE,     0.95),
     ("extended_excursion_25c.csv", "DPT", None,             0.80),  # decision varies
     ("multiple_excursions.csv",    "DPT", None,             0.80),

@@ -17,7 +17,7 @@ from .cold_chain_generator import (
     INDIA_OUTREACH,
     generate_scenario,
 )
-from core.arrhenius import compute_potency, compute_mkt, mkt_potency_estimate
+from core.arrhenius import compute_potency, compute_mkt
 from core.bayesian import monte_carlo_potency_distribution, compute_posterior_summary
 from core.decision import make_decision, Decision
 from core.vaccine_params import VACCINE_DB
@@ -34,7 +34,6 @@ def _vvm_decision(temperatures_C: np.ndarray, vaccine_type: str) -> str:
     the total monitoring period.  If the VVM reaches stage 3 (irreversible
     change), the batch is discarded.
     """
-    params = VACCINE_DB[vaccine_type]
     frac_above = float(np.mean(temperatures_C > 8.0))
     # Stage 3 threshold: >10% of time above 8°C (simplified heuristic)
     if frac_above > 0.10:

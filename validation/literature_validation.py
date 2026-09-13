@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, Union
 
 import numpy as np
 import pandas as pd

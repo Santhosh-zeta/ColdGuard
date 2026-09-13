@@ -6,7 +6,7 @@ A (pre-exponential factor) is in hr^-1.
 shelf_life_hours is the nominal shelf life at ref_temp_K.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict
 
 R_GAS = 8.314  # J/(mol·K)
