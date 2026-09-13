@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Ask a Question
+    url: https://github.com/Santhosh-zeta/ColdGuard/discussions
+    about: Use GitHub Discussions for questions, ideas, and general conversation about ColdGuard.
+  - name: Scientific Discussion
+    url: https://github.com/Santhosh-zeta/ColdGuard/discussions/categories/science
+    about: Discuss Arrhenius parameters, validation data, and kinetic modelling methodology.
+  - name: WHO Cold Chain Resources
+    url: https://www.who.int/teams/immunization-vaccines-and-biologicals/essential-programme-on-immunization/cold-chain
+    about: Official WHO guidance on vaccine cold chain management.

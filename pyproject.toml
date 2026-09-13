@@ -6,8 +6,29 @@ build-backend = "setuptools.backends.legacy:build"
 name = "coldguard"
 version = "0.1.0"
 description = "Kinetic-Bayesian vaccine potency estimation for cold chain management"
+readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
+authors = [
+    { name = "Santhosh-zeta", email = "iamsanthosh2425@gmail.com" }
+]
+keywords = [
+    "vaccine", "cold-chain", "arrhenius", "bayesian", "potency",
+    "pharmacokinetics", "public-health", "immunisation", "india"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "numpy>=1.26.0",
     "scipy>=1.11.0",
@@ -16,12 +37,42 @@ dependencies = [
     "plotly>=5.15.0",
     "streamlit>=1.25.0",
     "reportlab>=4.0.0",
-    "pydantic>=2.0.0",
     "python-dateutil>=2.8.2",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.4.0", "jupyter>=1.0.0"]
+dev = [
+    "pytest>=7.4.0",
+    "ruff>=0.1.0",
+    "black>=23.0.0",
+    "jupyter>=1.0.0",
+]
+research = [
+    "pymc>=5.0.0",
+    "arviz>=0.16.0",
+]
+
+[project.scripts]
+coldguard = "coldguard_cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Santhosh-zeta/ColdGuard"
+Repository = "https://github.com/Santhosh-zeta/ColdGuard"
+"Bug Tracker" = "https://github.com/Santhosh-zeta/ColdGuard/issues"
+Documentation = "https://github.com/Santhosh-zeta/ColdGuard/tree/main/docs"
+Changelog = "https://github.com/Santhosh-zeta/ColdGuard/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
-exclude = ["tests*", "notebooks*"]
+exclude = ["tests*", "notebooks*", "paper*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "W", "F"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
