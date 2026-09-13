@@ -55,7 +55,7 @@ export default function InputScreen({ navigation }) {
       <View style={styles.pickerWrapper}>
         <Picker selectedValue={vaccine} onValueChange={setVaccine} style={styles.picker}>
           {VACCINES.map(v => (
-            <Picker.Item key={v} label={VACCINE_DB[v].name} value={v} />
+            <Picker.Item key={v} label={t('vaccines')?.[v] || VACCINE_DB[v].name} value={v} />
           ))}
         </Picker>
       </View>

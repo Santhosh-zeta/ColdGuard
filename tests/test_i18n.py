@@ -84,3 +84,29 @@ def test_app_js_language_toggle():
         content = f.read()
 
     assert "'te'" in content or '"te"' in content
+
+
+def test_yf_vaccine_key_present():
+    """Verify that Yellow Fever (YF) vaccine is present across en, hi, and te."""
+    for lang in ["en", "hi", "te"]:
+        _, vax_keys, _ = parse_js_dict_keys(os.path.join(I18N_DIR, f"{lang}.js"))
+        assert "YF" in vax_keys, f"Missing YF vaccine key in {lang}.js"
+
+
+def test_decision_banner_i18n_and_object_support():
+    """Verify that DecisionBanner.js supports useTranslation and object decision props."""
+    banner_path = os.path.join(MOBILE_APP_DIR, "src", "components", "DecisionBanner.js")
+    with open(banner_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    assert "useTranslation" in content
+    assert "decKey" in content or "typeof decision === 'object'" in content or "typeof decision === \"object\"" in content
+
+
+def test_input_screen_localized_vaccine_picker():
+    """Verify that InputScreen.js renders localized vaccine names from t('vaccines')."""
+    screen_path = os.path.join(MOBILE_APP_DIR, "src", "screens", "InputScreen.js")
+    with open(screen_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    assert "t('vaccines')" in content or 't("vaccines")' in content

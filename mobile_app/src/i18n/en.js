@@ -88,6 +88,7 @@ export default {
     IPV: "Inactivated Polio Vaccine",
     Rotavirus: "Rotavirus Vaccine",
     PCV: "Pneumococcal Conjugate Vaccine",
+    YF: "Yellow Fever Vaccine",
   },
 
   // Errors
