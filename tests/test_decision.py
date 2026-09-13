@@ -1,14 +1,14 @@
 """Tests for core.decision — decision support engine."""
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
 import pytest
 
-from core.bayesian import monte_carlo_potency_distribution, compute_posterior_summary
+from core.bayesian import compute_posterior_summary
 from core.decision import Decision, DecisionOutput, make_decision
 from core.vaccine_params import VACCINE_DB
-from core.arrhenius import compute_segment_attribution
 
 
 @pytest.fixture
@@ -24,7 +24,6 @@ def _make_summary(high_potency: bool):
     else:
         # 60% potency → should be DISCARD
         samples = np.random.uniform(0.55, 0.65, 5000)
-    from core.bayesian import compute_posterior_summary
     return compute_posterior_summary(samples)
 
 
@@ -50,7 +49,6 @@ def test_investigate_for_borderline(dpt):
         np.random.uniform(0.81, 0.95, 4000),  # above threshold
         np.random.uniform(0.60, 0.80, 3000),  # below threshold
     ])
-    from core.bayesian import compute_posterior_summary
     summary = compute_posterior_summary(samples)
     result = make_decision(summary, dpt, _empty_attribution())
     assert result.decision in (Decision.INVESTIGATE, Decision.DISCARD, Decision.USE)

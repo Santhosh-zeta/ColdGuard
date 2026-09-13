@@ -6,7 +6,7 @@ A (pre-exponential factor) is in hr^-1.
 shelf_life_hours is the nominal shelf life at ref_temp_K.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict
 
 R_GAS = 8.314  # J/(mol·K)
@@ -127,5 +127,16 @@ VACCINE_DB: Dict[str, VaccineParams] = {
         ref_temp_K=278.15,          # 5°C
         min_potency_threshold=0.80,
         freeze_sensitive=False,
+    ),
+    "JE": VaccineParams(
+        name="Japanese Encephalitis Vaccine",
+        Ea_mean=95_000,
+        Ea_std=5_500,
+        A=8.89e12,      # derived: 24-month shelf life at 5°C to 80% potency
+        A_log_std=0.18,
+        shelf_life_hours=17_280,    # 720 days = 2 years at 2–8°C
+        ref_temp_K=278.15,          # 5°C
+        min_potency_threshold=0.80,
+        freeze_sensitive=False,     # lyophilised formulation
     ),
 }

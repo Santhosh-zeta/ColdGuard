@@ -7,10 +7,7 @@ produce realistic temperature histories for simulation studies.
 
 from __future__ import annotations
 
-import json
-import math
-from dataclasses import dataclass, field
-from pathlib import Path
+from dataclasses import dataclass
 from typing import Optional, Tuple
 
 import numpy as np

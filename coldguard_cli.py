@@ -73,7 +73,6 @@ def main():
     )
 
     dec_out = result["decision_output"]
-    post = result["posterior_summary"]
 
     if args.json or args.output:
         # Serialize the result (convert non-JSON-native types)

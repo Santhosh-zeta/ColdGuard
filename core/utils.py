@@ -4,7 +4,6 @@ I/O utilities and the top-level pipeline runner for ColdGuard.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -20,8 +19,8 @@ from .arrhenius import (
     compute_freeze_damage_fraction,
 )
 from .bayesian import monte_carlo_potency_distribution, compute_posterior_summary
-from .decision import make_decision, DecisionOutput
-from .vaccine_params import VACCINE_DB, VaccineParams
+from .decision import make_decision
+from .vaccine_params import VACCINE_DB
 
 
 # ---------------------------------------------------------------------------

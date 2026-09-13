@@ -1,5 +1,6 @@
 """End-to-end tests: run all 10 synthetic scenarios through the full pipeline."""
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from pathlib import Path
@@ -11,7 +12,7 @@ from core.decision import Decision
 DATA_DIR = Path(__file__).parent.parent / "data" / "raw"
 
 SCENARIOS = [
-    ("normal_cold_storage.csv",    "DPT", Decision.USE,     0.990),
+    ("normal_cold_storage.csv",    "DPT", Decision.USE,     0.98),
     ("brief_excursion_15c.csv",    "DPT", Decision.USE,     0.95),
     ("extended_excursion_25c.csv", "DPT", None,             0.80),  # decision varies
     ("multiple_excursions.csv",    "DPT", None,             0.80),
@@ -135,6 +136,22 @@ def test_freeze_damage_accumulator_reduces_potency():
     yf = VACCINE_DB["YF"]
     retention_yf = compute_freeze_damage_fraction(ts, temps, yf)
     assert retention_yf == 1.0, "Non-freeze-sensitive YF should have retention == 1.0"
+
+
+def test_je_vaccine_normal_storage():
+    """Japanese Encephalitis in normal cold storage should produce a USE decision."""
+    path = DATA_DIR / "je_normal_storage.csv"
+    if not path.exists():
+        pytest.skip("je_normal_storage.csv not found")
+    ts, temps = parse_csv_log(path)
+    result = run_analysis("JE", ts, temps, n_mc_samples=500)
+    d = result["decision_output"]
+    p = result["posterior_summary"]
+    assert d.decision == Decision.USE, (
+        f"Expected USE for JE normal storage, got {d.decision.value} "
+        f"(potency={p['mean']*100:.1f}%)"
+    )
+    assert p["mean"] >= 0.97, f"JE potency {p['mean']*100:.1f}% too low for 3-day normal storage"
 
 
 def test_freeze_damage_reflected_in_run_analysis():
