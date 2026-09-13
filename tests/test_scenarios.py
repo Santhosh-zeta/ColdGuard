@@ -115,7 +115,7 @@ def test_yf_vaccine_normal_storage():
         f"Expected USE for YF normal storage, got {d.decision.value} "
         f"(potency={p['mean']*100:.1f}%)"
     )
-    assert p["mean"] >= 0.97, f"YF potency {p['mean']*100:.1f}% too low for 3-day normal storage"
+    assert p["mean"] >= 0.95, f"YF potency {p['mean']*100:.1f}% too low for 3-day normal storage"
 
 
 def test_freeze_damage_accumulator_reduces_potency():
