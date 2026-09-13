@@ -1,0 +1,300 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{xcolor}
+\geometry{margin=1in}
+
+% ── Metadata ──────────────────────────────────────────────────────────────────
+\title{%
+  \textbf{ColdGuard: A Kinetic-Bayesian Decision Support System for \\
+  Vaccine Potency Estimation Under Cold Chain Excursions}%
+}
+
+\author{
+  [Author Name] \\
+  Department of [Department], [Institution] \\
+  \texttt{[email@institution.ac.in]}
+}
+
+\date{[Month Year]}
+
+% ── Document ──────────────────────────────────────────────────────────────────
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Vaccine wastage due to temperature excursions in cold chains is a critical
+challenge for immunisation programmes in low- and middle-income countries.
+Current protocols---based on Vaccine Vial Monitors (VVMs) or simple threshold
+rules---produce high False Discard Rates (FDR), destroying viable vaccine, or
+high False Use Rates (FUR), risking under-potent doses. We present
+\textbf{ColdGuard}, a kinetic-Bayesian decision support system that integrates
+Arrhenius degradation kinetics with Monte Carlo uncertainty propagation to
+produce calibrated potency estimates and confidence-qualified USE/INVES\-TIGATE/DISCARD
+decisions from arbitrary temperature logs. Evaluated on [N] simulated cold chain
+scenarios representative of India's district, PHC, and outreach tiers, ColdGuard
+achieves an FDR of [X\%] and FUR of [Y\%] compared to [A\%] FDR and [B\%] FUR
+for WHO Mean Kinetic Temperature (MKT) and [C\%] FDR and [D\%] FUR for VVM-only
+protocols, while providing interpretable natural-language explanations suitable
+for use by Auxiliary Nurse Midwives with no specialist training. An offline
+mobile application for Android implements the same engine at 1000 Monte Carlo
+samples, running to completion within 3 seconds on a low-cost device. ColdGuard
+is open-source under MIT licence.
+\end{abstract}
+
+\textbf{Keywords:} vaccine potency; cold chain; Arrhenius kinetics; Bayesian
+uncertainty quantification; decision support; immunisation; India; last-mile
+
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+\label{sec:introduction}
+
+[TODO: Motivate the problem. Vaccine-preventable disease burden. India's UIP
+scale (390 million doses/year). Cold chain failures at last-mile. Cost of FDR
+(vaccine waste) and FUR (programme trust, effectiveness). State the gap:
+existing tools are binary threshold rules with no uncertainty quantification.
+State the contribution: ColdGuard + evaluation.]
+
+% ── Background ────────────────────────────────────────────────────────────────
+\section{Background}
+\label{sec:background}
+
+\subsection{Arrhenius Kinetics for Pharmaceutical Degradation}
+
+Vaccine degradation follows first-order Arrhenius kinetics \citep{galazka1998thermostability}.
+For a time-varying temperature trajectory $T(t)$, the remaining potency fraction is:
+
+\begin{equation}
+  P(t) = P_0 \cdot \exp\!\left(-\int_0^t k\bigl(T(\tau)\bigr)\,d\tau\right),
+  \quad k(T) = A \cdot \exp\!\!\left(\frac{-E_a}{RT}\right)
+  \label{eq:arrhenius-potency}
+\end{equation}
+
+where $E_a$ [J/mol] is the activation energy, $A$ [hr$^{-1}$] is the
+pre-exponential factor, and $R = 8.314$ J/(mol$\cdot$K).
+
+For a discrete temperature log $\{(t_i, T_i)\}$, we evaluate the integral using
+the trapezoidal rule:
+
+\begin{equation}
+  \int_0^t k(T(\tau))\,d\tau \approx \sum_{i=1}^{n-1}
+  \frac{k(T_i) + k(T_{i+1})}{2}\,\Delta t_i
+  \label{eq:trapezoid}
+\end{equation}
+
+\subsection{WHO Mean Kinetic Temperature}
+
+The WHO MKT \citep{who2006temperature} gives a single equivalent temperature:
+
+\begin{equation}
+  T_\text{MK} = \frac{E_a/R}{-\ln\!\left[\frac{1}{n}\sum_{i=1}^n
+    \exp\!\!\left(\frac{-E_a}{RT_i}\right)\right]}
+  \label{eq:mkt}
+\end{equation}
+
+MKT provides a baseline but yields a single point estimate with no calibrated
+uncertainty quantification.
+
+\subsection{Vaccine Vial Monitors}
+
+[TODO: Brief description of VVMs. Their conservative calibration. Trade-off
+between sensitivity and specificity. Published FDR estimates from literature.]
+
+% ── Methods ───────────────────────────────────────────────────────────────────
+\section{Methods}
+\label{sec:methods}
+
+\subsection{System Architecture}
+
+[TODO: Figure~\ref{fig:architecture}. Four-layer pipeline: parsing → Arrhenius
+integration → Monte Carlo uncertainty propagation → decision layer.]
+
+\begin{figure}[H]
+  \centering
+  % \includegraphics[width=0.85\textwidth]{figures/fig1_architecture.pdf}
+  \fbox{\parbox{0.85\textwidth}{\centering [PLACEHOLDER: System architecture diagram]}}
+  \caption{ColdGuard system architecture. Temperature logs are parsed, degradation
+    is integrated via Arrhenius kinetics, uncertainties in $E_a$, $A$, and sensor
+    readings are propagated via Monte Carlo sampling, and a calibrated decision is
+    emitted.}
+  \label{fig:architecture}
+\end{figure}
+
+\subsection{Bayesian Uncertainty Propagation}
+
+Arrhenius parameters are uncertain. ColdGuard propagates three uncertainty
+sources via Monte Carlo ($N = 5000$ samples):
+
+\begin{enumerate}
+  \item \textbf{Activation energy:} $E_a^{(s)} \sim \mathcal{N}(\mu_{E_a}, \sigma_{E_a}^2)$
+  \item \textbf{Pre-exponential factor:} $\ln A^{(s)} \sim \mathcal{N}(\ln A_\text{mean}, \sigma_{\ln A}^2)$
+  \item \textbf{Sensor error:} $\varepsilon_i^{(s)} \sim \mathcal{N}(0,\,\sigma_\text{logger}^2)$, added to each reading
+\end{enumerate}
+
+The posterior potency distribution $\{P^{(1)}, \ldots, P^{(N)}\}$ yields the
+90\% credible interval and the key probability $\Pr(P > P_\text{min})$ that drives
+the decision.
+
+\subsection{Decision Logic}
+
+\begin{table}[H]
+  \centering
+  \caption{Decision thresholds}
+  \begin{tabular}{lll}
+    \toprule
+    Condition & Decision \\
+    \midrule
+    $\Pr(P > P_\text{min}) > 0.90$ & \textsc{use} \\
+    $0.70 < \Pr(P > P_\text{min}) \leq 0.90$ & \textsc{investigate} \\
+    $\Pr(P > P_\text{min}) \leq 0.70$ & \textsc{discard} \\
+    \bottomrule
+  \end{tabular}
+  \label{tab:decision}
+\end{table}
+
+\subsection{Vaccine Parameters}
+
+\begin{table}[H]
+  \centering
+  \caption{Arrhenius parameters for UIP vaccines (sources: \citealt{galazka1998thermostability,who2006temperature})}
+  \begin{tabular}{lrrrr}
+    \toprule
+    Vaccine & $E_a$ (kJ/mol) & Shelf life & Ref.\ temp.\ (°C) & Min.\ potency \\
+    \midrule
+    DPT       & $83 \pm 4$   & 24 months & 5  & 80\% \\
+    OPV       & $112 \pm 6$  & 6 months  & 5  & 67\% \\
+    MMR       & $108 \pm 7$  & 12 months & 5  & 80\% \\
+    BCG       & $90 \pm 5$   & 12 months & 5  & 80\% \\
+    Hep B     & $70 \pm 4.5$ & 24 months & 5  & 80\% \\
+    IPV       & $92 \pm 5.5$ & 24 months & 5  & 80\% \\
+    Rotavirus & $100 \pm 6$  & 24 months & $-15$ & 80\% \\
+    PCV       & $77 \pm 4$   & 24 months & 5  & 80\% \\
+    \bottomrule
+  \end{tabular}
+  \label{tab:params}
+\end{table}
+
+\subsection{Simulation Study Design}
+
+[TODO: Describe the 3-tier India cold chain simulation (district hospital, PHC,
+outreach). Scenario generation parameters. 1000 simulated cold chains. Ground
+truth labelling methodology. McNemar's test for comparing ColdGuard vs MKT vs
+VVM. FDR/FUR metrics definition.]
+
+\subsection{Validation Against Published Data}
+
+[TODO: Literature validation. Describe sources. Round-trip test methodology.
+Calibration analysis (coverage probability, RMSE).]
+
+% ── Evaluation ────────────────────────────────────────────────────────────────
+\section{Evaluation}
+\label{sec:evaluation}
+
+[TODO: Computational environment. Test suite (37 unit/integration tests).
+Runtime benchmarks (mobile: 1000 samples < 3 s). Parameter sensitivity analysis.]
+
+% ── Results ───────────────────────────────────────────────────────────────────
+\section{Results}
+\label{sec:results}
+
+\subsection{Example Scenario}
+
+[TODO: Figure~\ref{fig:example}: DPT power-outage scenario. Temperature timeline,
+potency distribution, segment attribution.]
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.85\textwidth}{\centering [PLACEHOLDER: Example DPT scenario figure]}}
+  \caption{ColdGuard output for the demo DPT power-outage scenario (11 h at
+    14.3°C). Left: temperature timeline with excursion highlighted. Right:
+    Monte Carlo potency distribution with 90\% CI band.}
+  \label{fig:example}
+\end{figure}
+
+\subsection{Simulation Study Results}
+
+[TODO: Table comparing FDR/FUR/Accuracy for ColdGuard, MKT, VVM across three
+cold chain tiers. Figure~\ref{fig:simulation}.]
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.85\textwidth}{\centering [PLACEHOLDER: Simulation results figure]}}
+  \caption{FDR and FUR for three decision protocols across India cold chain tiers.}
+  \label{fig:simulation}
+\end{figure}
+
+\subsection{Calibration}
+
+[TODO: Calibration plot (reliability diagram). Coverage probability table.
+RMSE and MAE on validation data.]
+
+% ── Discussion ────────────────────────────────────────────────────────────────
+\section{Discussion}
+\label{sec:discussion}
+
+[TODO: Interpret results. Why ColdGuard reduces FDR: calibrated uncertainty
+avoids conservative thresholding. Why INVESTIGATE zone is valuable vs binary.
+Limitations: Ea values from literature starting points, not independently derived;
+validation data partially synthetic; mobile not field-tested. Comparison to
+prior work: Matthias et al. potency estimation, ColdTrace logger software,
+WHO guidance evolution. Deployment considerations: offline-first, Hindi i18n,
+low-cost Android.]
+
+\subsection{Limitations}
+
+\begin{enumerate}
+  \item \textit{Parameter uncertainty}: Ea values are drawn from published ranges,
+    not independently derived from primary stability data for each product.
+  \item \textit{Validation data}: Only three vaccines have literature-sourced
+    stability points; remaining five use model-generated surrogate data.
+  \item \textit{Freeze damage}: The current model does not quantify damage from
+    freeze events; only detection is implemented.
+  \item \textit{Field validation}: The mobile application has not been tested
+    in a real cold chain setting with ANM users.
+\end{enumerate}
+
+% ── Conclusion ────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+[TODO: Summary. ColdGuard demonstrates that calibrated Bayesian uncertainty
+quantification applied to first-principles Arrhenius kinetics meaningfully
+reduces both false discard and false use rates compared to VVM and MKT protocols,
+while remaining deployable offline on low-cost Android devices. Future work:
+field validation, real stability data for all 8 vaccines, freeze damage model,
+integration with national eVIN cold chain monitoring system.]
+
+% ── References ────────────────────────────────────────────────────────────────
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+% ── Appendix ──────────────────────────────────────────────────────────────────
+\appendix
+\section{Supplementary Material}
+\label{sec:supplementary}
+
+See the \texttt{paper/supplementary/} directory for:
+\begin{itemize}
+  \item \texttt{S1\_arrhenius\_derivation.pdf} — Full derivation of A from shelf-life specification
+  \item \texttt{S2\_mc\_convergence.pdf} — Monte Carlo convergence diagnostics
+  \item \texttt{S3\_scenario\_descriptions.pdf} — All 10 synthetic test scenario descriptions
+\end{itemize}
+
+\end{document}

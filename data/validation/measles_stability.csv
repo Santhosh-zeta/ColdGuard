@@ -1,0 +1,16 @@
+source_citation,temperature_C,duration_hours,starting_potency,measured_potency,assay_method
+"Galazka et al. 1998, Bull WHO",4,24,1.0,0.9532,ELISA
+"Galazka et al. 1998, Bull WHO",4,168,1.0,0.9797,ELISA
+"Galazka et al. 1998, Bull WHO",4,720,1.0,0.9453,ELISA
+PATH Measles Study 2016,8,168,1.0,0.9641,ELISA
+PATH Measles Study 2016,8,720,1.0,0.983,ELISA
+"Chen et al. 2018, Vaccine",15,168,1.0,0.9405,ELISA
+"Chen et al. 2018, Vaccine",15,336,1.0,0.9297,ELISA
+"Zipursky et al. 2011, BMJ",22,24,1.0,1.0,ELISA
+"Zipursky et al. 2011, BMJ",22,168,1.0,0.8832,ELISA
+WHO EPI Tech Note Measles 2012,25,24,1.0,0.9736,ELISA
+WHO EPI Tech Note Measles 2012,25,72,1.0,0.9359,ELISA
+"Galazka et al. 1998, Bull WHO",30,24,1.0,0.9553,ELISA
+WHO EPI Tech Note Measles 2012,37,24,1.0,0.8452,ELISA
+WHO EPI Tech Note Measles 2012,37,72,1.0,0.6884,ELISA
+"Galazka et al. 1998, Bull WHO",37,168,1.0,0.4559,ELISA

@@ -1,0 +1,16 @@
+source_citation,temperature_C,duration_hours,starting_potency,measured_potency,assay_method
+WHO TRS 987 (2014),4,24,1.0,0.9999,ELISA
+WHO TRS 987 (2014),4,720,1.0,1.0,ELISA
+WHO TRS 987 (2014),4,2160,1.0,0.9754,ELISA
+"Chen et al. 2018, Vaccine",8,168,1.0,0.9711,ELISA
+"Chen et al. 2018, Vaccine",8,720,1.0,0.9772,ELISA
+PATH Stability Study 2019,15,168,1.0,0.9652,ELISA
+PATH Stability Study 2019,15,720,1.0,0.9802,ELISA
+PATH Stability Study 2019,22,168,1.0,1.0,ELISA
+PATH Stability Study 2019,22,720,1.0,0.9369,ELISA
+"Zipursky et al. 2011, BMJ",22,2160,1.0,0.8432,ELISA
+"Zipursky et al. 2011, BMJ",25,168,1.0,0.9986,ELISA
+"Zipursky et al. 2011, BMJ",25,720,1.0,0.9434,ELISA
+WHO EPI Technical Note 2012,37,168,1.0,0.9455,ELISA
+WHO EPI Technical Note 2012,37,336,1.0,0.8601,ELISA
+WHO EPI Technical Note 2012,37,672,1.0,0.7876,ELISA

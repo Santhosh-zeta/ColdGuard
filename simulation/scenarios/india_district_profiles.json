@@ -1,0 +1,64 @@
+{
+  "_metadata": {
+    "description": "Cold-chain temperature profiles derived from Indian immunisation programme audit data",
+    "sources": [
+      "WHO/UNICEF India EVM Assessment 2015",
+      "ITSU Immunisation Technical Support Unit India 2018",
+      "Yadav et al. 2021, Vaccine cold chain in India"
+    ]
+  },
+  "india_district": {
+    "description": "District Vaccine Store (DVS) to PHC transit + PHC cold room",
+    "base_temp_C": 4.5,
+    "base_temp_std_C": 0.8,
+    "excursion_frequency_per_day": 0.15,
+    "excursion_duration_hours_mean": 3.5,
+    "excursion_duration_hours_std": 1.5,
+    "excursion_temp_mean_C": 14.0,
+    "excursion_temp_std_C": 4.0,
+    "freeze_event_frequency_per_day": 0.05,
+    "freeze_duration_hours_mean": 1.0,
+    "freeze_duration_hours_std": 0.5,
+    "logging_gap_frequency_per_day": 0.03,
+    "logging_gap_hours_mean": 5.0,
+    "power_outage_frequency_per_day": 0.2,
+    "power_outage_duration_hours_mean": 2.0,
+    "power_outage_temp_rise_C_per_hour": 1.5
+  },
+  "india_phc": {
+    "description": "Primary Health Centre ice-lined refrigerator",
+    "base_temp_C": 5.0,
+    "base_temp_std_C": 1.2,
+    "excursion_frequency_per_day": 0.25,
+    "excursion_duration_hours_mean": 4.0,
+    "excursion_duration_hours_std": 2.0,
+    "excursion_temp_mean_C": 16.0,
+    "excursion_temp_std_C": 5.0,
+    "freeze_event_frequency_per_day": 0.08,
+    "freeze_duration_hours_mean": 1.5,
+    "freeze_duration_hours_std": 0.8,
+    "logging_gap_frequency_per_day": 0.10,
+    "logging_gap_hours_mean": 8.0,
+    "power_outage_frequency_per_day": 0.35,
+    "power_outage_duration_hours_mean": 3.5,
+    "power_outage_temp_rise_C_per_hour": 2.0
+  },
+  "india_outreach": {
+    "description": "Village outreach session (vaccine carrier / cold box)",
+    "base_temp_C": 6.0,
+    "base_temp_std_C": 2.0,
+    "excursion_frequency_per_day": 0.60,
+    "excursion_duration_hours_mean": 2.0,
+    "excursion_duration_hours_std": 1.0,
+    "excursion_temp_mean_C": 28.0,
+    "excursion_temp_std_C": 6.0,
+    "freeze_event_frequency_per_day": 0.15,
+    "freeze_duration_hours_mean": 0.5,
+    "freeze_duration_hours_std": 0.25,
+    "logging_gap_frequency_per_day": 0.40,
+    "logging_gap_hours_mean": 6.0,
+    "power_outage_frequency_per_day": 0.0,
+    "power_outage_duration_hours_mean": 0.0,
+    "power_outage_temp_rise_C_per_hour": 0.0
+  }
+}
