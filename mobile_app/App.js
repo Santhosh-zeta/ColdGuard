@@ -10,8 +10,8 @@ import { LangContext } from './src/i18n/useTranslation';
 
 const Stack = createNativeStackNavigator();
 
-const LANGUAGES = ['en', 'hi', 'ta', 'bn', 'te'];
-const NEXT_LANG_LABELS = { en: 'हिं', hi: 'தமி', ta: 'বাং', bn: 'తె', te: 'EN' };
+const LANGUAGES = ['en', 'hi', 'ta', 'bn', 'te', 'kn'];
+const NEXT_LANG_LABELS = { en: 'हिं', hi: 'தமி', ta: 'বাং', bn: 'తె', te: 'ಕನ್ನ', kn: 'EN' };
 
 export default function App() {
   const [lang, setLang] = useState('en');
