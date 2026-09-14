@@ -28,8 +28,8 @@ def parse_js_dict_keys(file_path):
 
 
 def test_i18n_files_exist():
-    """Verify that en.js, hi.js, and te.js all exist."""
-    for lang in ["en", "hi", "te"]:
+    """Verify that en.js, hi.js, ta.js, bn.js, and te.js all exist."""
+    for lang in ["en", "hi", "ta", "bn", "te"]:
         path = os.path.join(I18N_DIR, f"{lang}.js")
         assert os.path.isfile(path), f"Missing translation file: {path}"
 
@@ -44,6 +44,17 @@ def test_telugu_keys_match_english():
 
     missing_vax = en_vax - te_vax
     assert not missing_vax, f"te.js is missing vaccine names from en.js: {missing_vax}"
+
+
+def test_all_twelve_vaccines_present_in_telugu():
+    """Verify that all 12 UIP vaccines (including YF, JE, Typhoid, MenA) are in te.js."""
+    expected_vaccines = {
+        "DPT", "OPV", "MMR", "BCG", "HepB", "IPV",
+        "Rotavirus", "PCV", "YF", "JE", "Typhoid", "MenA"
+    }
+    _, te_vax, _ = parse_js_dict_keys(os.path.join(I18N_DIR, "te.js"))
+    missing = expected_vaccines - te_vax
+    assert not missing, f"te.js is missing vaccines: {missing}"
 
 
 def test_telugu_medical_translations():
@@ -68,29 +79,38 @@ def test_telugu_medical_translations():
 
 
 def test_use_translation_registration():
-    """Verify that te is imported and registered in useTranslation.js."""
+    """Verify that all languages including te are imported and registered in useTranslation.js."""
     path = os.path.join(I18N_DIR, "useTranslation.js")
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    assert "import te from './te';" in content or "import te from './te'" in content
+    for lang in ["en", "hi", "ta", "bn", "te"]:
+        assert f"import {lang} from './{lang}';" in content or f"import {lang} from './{lang}'" in content
+        assert lang in content
+
     assert re.search(r'TRANSLATIONS\s*=\s*\{[^}]*te[^}]*\}', content) is not None
 
 
 def test_app_js_language_toggle():
-    """Verify that App.js registers 'te' in its language cycle."""
+    """Verify that App.js registers all 5 languages including 'te' in its language cycle."""
     app_js_path = os.path.join(MOBILE_APP_DIR, "App.js")
     with open(app_js_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    assert "'te'" in content or '"te"' in content
+    for lang in ["en", "hi", "ta", "bn", "te"]:
+        assert f"'{lang}'" in content or f'"{lang}"' in content
 
 
-def test_yf_vaccine_key_present():
-    """Verify that Yellow Fever (YF) vaccine is present across en, hi, and te."""
-    for lang in ["en", "hi", "te"]:
+def test_all_vaccines_present_across_languages():
+    """Verify that all 12 UIP vaccines are present in en, hi, ta, bn, and te."""
+    expected_vaccines = {
+        "DPT", "OPV", "MMR", "BCG", "HepB", "IPV",
+        "Rotavirus", "PCV", "YF", "JE", "Typhoid", "MenA"
+    }
+    for lang in ["en", "hi", "ta", "bn", "te"]:
         _, vax_keys, _ = parse_js_dict_keys(os.path.join(I18N_DIR, f"{lang}.js"))
-        assert "YF" in vax_keys, f"Missing YF vaccine key in {lang}.js"
+        missing = expected_vaccines - vax_keys
+        assert not missing, f"Missing vaccines in {lang}.js: {missing}"
 
 
 def test_decision_banner_i18n_and_object_support():

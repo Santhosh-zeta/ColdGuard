@@ -16,7 +16,7 @@ setup(
         "plotly>=5.15.0",
         "streamlit>=1.25.0",
         "reportlab>=4.0.0",
-        "pydantic>=2.0.0",
+        "pydantic>=2.13.5",
         "python-dateutil>=2.8.2",
     ],
     extras_require={

@@ -12,7 +12,7 @@ from typing import Optional
 
 import numpy as np
 
-from .arrhenius import integrate_degradation
+from .arrhenius import integrate_degradation, compute_freeze_damage_fraction
 from .vaccine_params import VaccineParams
 
 
@@ -76,10 +76,15 @@ def monte_carlo_potency_distribution(
     noise = rng.normal(0.0, logger_accuracy_C, size=(n_samples, len(tc)))
     tc_perturbed = tc[np.newaxis, :] + noise  # broadcast
 
+    # Freeze damage is determined from actual measured temperatures (not perturbed),
+    # because freeze damage is a binary event based on observed data, not a kinetic
+    # uncertainty. The same retention factor applies to all MC samples.
+    freeze_retention = compute_freeze_damage_fraction(ts, tc, vaccine_params)
+
     potencies = np.empty(n_samples, dtype=float)
     for i in range(n_samples):
         D = integrate_degradation(ts, tc_perturbed[i], Ea_samples[i], A_samples[i])
-        potencies[i] = initial_potency * math.exp(-D)
+        potencies[i] = initial_potency * math.exp(-D) * freeze_retention
 
     # Clamp to [0, 1]
     potencies = np.clip(potencies, 0.0, 1.0)

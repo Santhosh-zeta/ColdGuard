@@ -6,7 +6,7 @@ A (pre-exponential factor) is in hr^-1.
 shelf_life_hours is the nominal shelf life at ref_temp_K.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict
 
 R_GAS = 8.314  # J/(mol·K)
@@ -116,5 +116,49 @@ VACCINE_DB: Dict[str, VaccineParams] = {
         ref_temp_K=278.15,
         min_potency_threshold=0.80,
         freeze_sensitive=True,
+    ),
+    "YF": VaccineParams(
+        name="Yellow Fever Vaccine",
+        Ea_mean=110_000,
+        Ea_std=7_000,
+        A=5.916e15,     # derived: 24-month shelf life at 5°C to 80% potency
+        A_log_std=0.20,
+        shelf_life_hours=17_280,    # 720 days = 2 years at 2–8°C
+        ref_temp_K=278.15,          # 5°C
+        min_potency_threshold=0.80,
+        freeze_sensitive=False,
+    ),
+    "JE": VaccineParams(
+        name="Japanese Encephalitis Vaccine",
+        Ea_mean=95_000,
+        Ea_std=5_500,
+        A=8.89e12,      # derived: 24-month shelf life at 5°C to 80% potency
+        A_log_std=0.18,
+        shelf_life_hours=17_280,    # 720 days = 2 years at 2–8°C
+        ref_temp_K=278.15,          # 5°C
+        min_potency_threshold=0.80,
+        freeze_sensitive=False,     # lyophilised formulation
+    ),
+    "Typhoid": VaccineParams(
+        name="Typhoid (Vi Polysaccharide) Vaccine",
+        Ea_mean=80_000,
+        Ea_std=4_500,
+        A=1.35e10,      # derived: 24-month shelf life at 5°C to 80% potency
+        A_log_std=0.16,
+        shelf_life_hours=17_280,    # 720 days = 2 years at 2–8°C
+        ref_temp_K=278.15,          # 5°C
+        min_potency_threshold=0.80,
+        freeze_sensitive=True,      # Vi-PS aggregates on freeze–thaw cycling
+    ),
+    "MenA": VaccineParams(
+        name="Meningitis A (MenA) Conjugate Vaccine",
+        Ea_mean=85_000,
+        Ea_std=5_000,
+        A=1.18e11,      # derived: 24-month shelf life at 5°C to 80% potency
+        A_log_std=0.18,
+        shelf_life_hours=17_280,    # 720 days = 2 years at 2–8°C
+        ref_temp_K=278.15,          # 5°C
+        min_potency_threshold=0.80,
+        freeze_sensitive=True,      # conjugate vaccines must not be frozen
     ),
 }

@@ -89,6 +89,9 @@ export default {
     Rotavirus: "Rotavirus Vaccine",
     PCV: "Pneumococcal Conjugate Vaccine",
     YF: "Yellow Fever Vaccine",
+    JE: "Japanese Encephalitis Vaccine",
+    Typhoid: "Typhoid (Vi Polysaccharide) Vaccine",
+    MenA: "Meningitis A (MenA) Conjugate Vaccine",
   },
 
   // Errors

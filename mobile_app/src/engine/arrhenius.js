@@ -107,6 +107,54 @@ export const VACCINE_DB = {
     minPotencyThreshold: 0.80,
     freeze_sensitive: true,
   },
+  YF: {
+    name: "Yellow Fever Vaccine",
+    Ea_mean: 110000,
+    Ea_std: 7000,
+    A: 5.916e15,
+    A_log_std: 0.20,
+    shelf_life_hours: 17280,
+    ref_temp_K: 278.15,
+    min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
+    freeze_sensitive: false,
+  },
+  JE: {
+    name: "Japanese Encephalitis Vaccine",
+    Ea_mean: 95000,
+    Ea_std: 5500,
+    A: 8.89e12,
+    A_log_std: 0.18,
+    shelf_life_hours: 17280,
+    ref_temp_K: 278.15,
+    min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
+    freeze_sensitive: false,
+  },
+  Typhoid: {
+    name: "Typhoid (Vi Polysaccharide) Vaccine",
+    Ea_mean: 80000,
+    Ea_std: 4500,
+    A: 1.35e10,
+    A_log_std: 0.16,
+    shelf_life_hours: 17280,
+    ref_temp_K: 278.15,
+    min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
+    freeze_sensitive: true,
+  },
+  MenA: {
+    name: "Meningitis A (MenA) Conjugate Vaccine",
+    Ea_mean: 85000,
+    Ea_std: 5000,
+    A: 1.18e11,
+    A_log_std: 0.18,
+    shelf_life_hours: 17280,
+    ref_temp_K: 278.15,
+    min_potency_threshold: 0.80,
+    minPotencyThreshold: 0.80,
+    freeze_sensitive: true,
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -158,6 +206,34 @@ export function integrateDegradation(timestamps, temperaturesC, Ea, A) {
 }
 
 // ---------------------------------------------------------------------------
+// Freeze damage accumulator (mirrors core/arrhenius.py)
+// ---------------------------------------------------------------------------
+const FREEZE_DAMAGE_RATE = 0.5; // hr^-1
+
+/**
+ * Compute potency retention factor from freeze exposure.
+ * Returns 1.0 for non-freeze-sensitive vaccines.
+ * @param {number[]} timestamps      Unix seconds
+ * @param {number[]} temperaturesC   Celsius readings
+ * @param {Object}   params          Entry from VACCINE_DB
+ * @param {number}   [freezeThresholdC=0.0]
+ * @returns {number}  Freeze retention fraction in [0, 1]
+ */
+export function computeFreezeDamageFraction(timestamps, temperaturesC, params, freezeThresholdC = 0.0) {
+  if (!params.freeze_sensitive) return 1.0;
+  if (timestamps.length < 2) return 1.0;
+
+  let totalFreezeHours = 0;
+  for (let i = 0; i < timestamps.length - 1; i++) {
+    if (temperaturesC[i] < freezeThresholdC || temperaturesC[i + 1] < freezeThresholdC) {
+      totalFreezeHours += (timestamps[i + 1] - timestamps[i]) / 3600;
+    }
+  }
+  if (totalFreezeHours === 0) return 1.0;
+  return Math.exp(-FREEZE_DAMAGE_RATE * totalFreezeHours);
+}
+
+// ---------------------------------------------------------------------------
 // Monte-Carlo sampling
 // ---------------------------------------------------------------------------
 /**
@@ -183,13 +259,16 @@ export function monteCarloSamples(
 
   const samples = [];
   const logA = Math.log(params.A);
+  // Freeze damage is determined from original measured temperatures (not perturbed),
+  // because freeze damage is a binary event based on observed data.
+  const freezeRetention = computeFreezeDamageFraction(timestamps, temperaturesC, params);
 
   for (let s = 0; s < nSamples; s++) {
     const Ea = gaussianRandom(params.Ea_mean, params.Ea_std);
     const A = Math.exp(gaussianRandom(logA, params.A_log_std));
     const pertTemps = temperaturesC.map((t) => t + gaussianRandom(0, loggerAccuracyC));
     const D = integrateDegradation(timestamps, pertTemps, Ea, A);
-    const potency = Math.min(1.0, Math.max(0.0, Math.exp(-D)));
+    const potency = Math.min(1.0, Math.max(0.0, Math.exp(-D) * freezeRetention));
     samples.push(potency);
   }
   return samples;
