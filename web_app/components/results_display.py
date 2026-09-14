@@ -195,8 +195,7 @@ def render_results(analysis_result: Dict[str, Any]) -> None:
         use_container_width=True,
     )
 
-
-        # -------------------------------------------------- Download PDF report
+    # -------------------------------------------------- Download PDF report
     pdf_data = generate_pdf_report(report)
 
     st.download_button(
