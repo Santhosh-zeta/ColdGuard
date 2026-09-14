@@ -28,7 +28,7 @@
     "@expo/vector-icons": "^14.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.24.0",
+    "@babel/core": "^8.0.5",
     "jest": "^29.7.0",
     "jest-expo": "~51.0.0"
   },
