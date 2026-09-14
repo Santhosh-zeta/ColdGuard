@@ -193,26 +193,26 @@ export default function InputScreen({ navigation }) {
         </View>
       )}
 
-      {/* Vaccine */}
-      <Text style={styles.label}>
-        {t('vaccineType')}
-      </Text>
+  {/* Vaccine */}
+<Text style={styles.label}>
+  {t('vaccineType')}
+</Text>
 
-      <View style={styles.pickerWrapper}>
-        <Picker
-          selectedValue={vaccine}
-          onValueChange={setVaccine}
-          style={styles.picker}
-        >
-          {VACCINES.map(v => (
-            <Picker.Item
-              key={v}
-              label={VACCINE_DB[v].name}
-              value={v}
-            />
-          ))}
-        </Picker>
-      </View>
+<View style={styles.pickerWrapper}>
+  <Picker
+    selectedValue={vaccine}
+    onValueChange={setVaccine}
+    style={styles.picker}
+  >
+    {VACCINES.map(v => (
+      <Picker.Item
+        key={v}
+        label={t('vaccines')?.[v] || VACCINE_DB[v].name}
+        value={v}
+      />
+    ))}
+  </Picker>
+</View>
 
       {/* Temperature Log */}
       <Text style={styles.label}>

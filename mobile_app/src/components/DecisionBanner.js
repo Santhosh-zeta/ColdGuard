@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useTranslation } from "../i18n/useTranslation";
 
 const STYLES = {
   USE: {
@@ -26,12 +27,30 @@ const STYLES = {
  * DecisionBanner
  *
  * Props:
- *   decision  {string}  "USE" | "INVESTIGATE" | "DISCARD"
- *   message   {string}  Short explanation text
- *   confidence {number} 0–1
+ *   decision   {string|object} "USE" | "INVESTIGATE" | "DISCARD" or { decision, confidence, explanation }
+ *   message    {string}        Short explanation text
+ *   confidence {number}        0–1
+ *   posterior  {object}        Optional posterior summary
  */
-export default function DecisionBanner({ decision, message, confidence }) {
-  const style = STYLES[decision] || STYLES.INVESTIGATE;
+export default function DecisionBanner({ decision, message, confidence, posterior }) {
+  const { t } = useTranslation();
+
+  const decKey = (typeof decision === "object" && decision !== null)
+    ? decision.decision
+    : decision;
+  const normalizedKey = (decKey || "INVESTIGATE").toUpperCase();
+  const style = STYLES[normalizedKey] || STYLES.INVESTIGATE;
+
+  const confVal = confidence !== undefined
+    ? confidence
+    : (typeof decision === "object" && decision !== null
+        ? decision.confidence
+        : (posterior ? (posterior.probAbove80 ?? posterior.prob_above_80pct) : undefined));
+
+  const displayDecision = t(normalizedKey.toLowerCase()) || normalizedKey;
+  const displayMsg = message || (typeof decision === "object" && decision !== null
+    ? decision.explanation
+    : t(`${normalizedKey.toLowerCase()}Message`));
 
   return (
     <View
@@ -41,14 +60,14 @@ export default function DecisionBanner({ decision, message, confidence }) {
       ]}
     >
       <Text style={styles.emoji}>{style.emoji}</Text>
-      <Text style={[styles.decision, { color: style.text }]}>{decision}</Text>
-      {confidence !== undefined && (
+      <Text style={[styles.decision, { color: style.text }]}>{displayDecision}</Text>
+      {confVal !== undefined && (
         <Text style={[styles.confidence, { color: style.text }]}>
-          Confidence: {(confidence * 100).toFixed(0)}%
+          {t("confidence")}: {(confVal * 100).toFixed(0)}%
         </Text>
       )}
-      {message ? (
-        <Text style={[styles.message, { color: style.text }]}>{message}</Text>
+      {displayMsg ? (
+        <Text style={[styles.message, { color: style.text }]}>{displayMsg}</Text>
       ) : null}
     </View>
   );
