@@ -10,6 +10,7 @@ from typing import Any, Dict
 
 import numpy as np
 import streamlit as st
+from ..pdf_report import generate_pdf_report
 
 from core.decision import Decision
 from .charts import temperature_timeline_chart, potency_distribution_chart
@@ -191,5 +192,17 @@ def render_results(analysis_result: Dict[str, Any]) -> None:
         data=json.dumps(report, indent=2),
         file_name=f"coldguard_report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json",
         mime="application/json",
+        use_container_width=True,
+    )
+
+
+        # -------------------------------------------------- Download PDF report
+    pdf_data = generate_pdf_report(report)
+
+    st.download_button(
+        label="Download PDF Report",
+        data=pdf_data,
+        file_name=f"coldguard_report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf",
+        mime="application/pdf",
         use_container_width=True,
     )
