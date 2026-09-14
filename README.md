@@ -12,7 +12,7 @@
 [![Lint](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/lint.yml/badge.svg)](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/lint.yml)
 [![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Android%20%7C%20CLI-8b5cf6.svg)]()
 [![Offline](https://img.shields.io/badge/Works-Offline-f59e0b.svg)]()
-[![Languages](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी%20%7C%20தமிழ்%20%7C%20বাংলা%20%7C%20తెలుగు-ef4444.svg)](mobile_app/src/i18n/)
+[![Languages](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी%20%7C%20தமிழ்%20%7C%20বाংলा%20%7C%20తెలుగు-ef4444.svg)](mobile_app/src/i18n/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 <br/>
@@ -30,7 +30,7 @@ India's Universal Immunisation Programme delivers **390 million doses per year**
 Current protocols respond with one of two equally bad choices:
 
 | Protocol | Problem |
-|----------|---------|
+|----------|----------|
 | **Discard on any alarm** | Destroys potent vaccines. Millions of doses wasted every year. Costs money, erodes trust. |
 | **Use it anyway** | Risks administering under-potent doses. Children aren't protected. |
 | **VVM (Vaccine Vial Monitor)** | Binary indicator, conservatively calibrated. High false discard rate. No confidence interval. |
@@ -117,14 +117,14 @@ PYTHONPATH=. streamlit run web_app/app.py
 
 ```bash
 # Demo: DPT vaccine after an 11-hour power outage
-PYTHONPATH=. python coldguard_cli.py \
-    --input data/raw/demo_dpt_power_outage.csv \
+PYTHONPATH=. python coldguard_cli.py \\
+    --input data/raw/demo_dpt_power_outage.csv \\
     --vaccine DPT
 
 # Output JSON report
-PYTHONPATH=. python coldguard_cli.py \
-    --input data/raw/extended_excursion_25c.csv \
-    --vaccine OPV \
+PYTHONPATH=. python coldguard_cli.py \\
+    --input data/raw/extended_excursion_25c.csv \\
+    --vaccine OPV \\
     --output report.json
 ```
 
@@ -203,9 +203,9 @@ graph LR
 flowchart LR
     A["Monte Carlo\n5000 samples"] --> B["Compute\nP potency > Pmin"]
     B --> C{Probability}
-    C -->|"> 90%"| D["🟢 USE\nHigh confidence\nvaccine is potent"]
-    C -->|"70% – 90%"| E["🟡 INVESTIGATE\nUncertainty too high\ncall district officer"]
-    C -->|"< 70%"| F["🔴 DISCARD\nLikely below\npotency threshold"]
+    C -->|\"> 90%\"| D["🟢 USE\nHigh confidence\nvaccine is potent"]
+    C -->|\"70% – 90%\"| E["🟡 INVESTIGATE\nUncertainty too high\ncall district officer"]
+    C -->|\"< 70%\"| F["🔴 DISCARD\nLikely below\npotency threshold"]
 ```
 
 ---
@@ -383,17 +383,37 @@ timeline
 
 ---
 
-### 🙋 Open Issues — Help Wanted
+### 🙋 Open Issues & Community Contributions
 
-These are good first issues open for community contributions. Fork the repo, pick one, and send a PR!
+#### ✅ Recently Completed
+| Issue | Title | Status |
+|-------|-------|--------|
+| [#22](https://github.com/Santhosh-zeta/ColdGuard/issues/22) | Kannada (ಕನ್ನಡ) translations | ✅ Merged |
+| [#28](https://github.com/Santhosh-zeta/ColdGuard/issues/28) | FastAPI REST wrapper for Python engine | ✅ Merged |
+| [#27](https://github.com/Santhosh-zeta/ColdGuard/issues/27) | PDF report generator with ReportLab | ✅ Merged |
 
-| Issue | Title | Area | Difficulty |
-|-------|-------|------|------------|
-| [#28](https://github.com/Santhosh-zeta/ColdGuard/issues/28) | **Kannada (ಕನ್ನಡ) translation** — add `kn.js` i18n file and wire it into the mobile app | i18n / Mobile | 🟢 Beginner |
-| [#29](https://github.com/Santhosh-zeta/ColdGuard/issues/29) | **Bengali (বাংলা) translation** — add `bn.js` i18n file covering all UI strings | i18n / Mobile | 🟢 Beginner |
-| [#30](https://github.com/Santhosh-zeta/ColdGuard/issues/30) | **PDF report generator** — Streamlit "Download Report" button that exports analysis as a signed PDF | Web / Python | 🟡 Intermediate |
-| [#31](https://github.com/Santhosh-zeta/ColdGuard/issues/31) | **QR code scanner** — camera-based Berlinger Fridge-tag logger ID scan in the React Native app | Mobile / React Native | 🟡 Intermediate |
-| [#32](https://github.com/Santhosh-zeta/ColdGuard/issues/32) | **PyMC full Bayesian inference** — replace Monte Carlo sampling with proper MCMC posterior using PyMC | Scientific / Python | 🔴 Advanced |
+#### 🔄 Currently Open — Help Wanted!
+
+**High Priority (Core Functionality)**
+| Issue | Title | Area | Effort | Assigned |
+|-------|-------|------|--------|----------|
+| [#39](https://github.com/Santhosh-zeta/ColdGuard/issues/39) | **Batch CSV import API** — `POST /batch-analyse` for processing 20+ vaccine lots in one request | REST API / Backend | 🟡 Medium | Open |
+| [#38](https://github.com/Santhosh-zeta/ColdGuard/issues/38) | **API documentation** — README section, example requests/responses, deployment guide | Docs | 🟢 Easy | Open |
+| [#4](https://github.com/Santhosh-zeta/ColdGuard/issues/4) | **Real validation data** — Extract published Ea values for HepB, IPV, BCG from WHO literature | Research / Data | 🔴 Complex | @kanagarajSCK |
+
+**Mobile App Enhancements**
+| Issue | Title | Area | Effort | Assigned |
+|-------|-------|------|--------|----------|
+| [#19](https://github.com/Santhosh-zeta/ColdGuard/issues/19) | **QR code scanner** — Scan Berlinger Fridge-tag logger to auto-import temperature logs | Mobile / React Native | 🟡 Medium | @kanagarajSCK |
+| [#32](https://github.com/Santhosh-zeta/ColdGuard/issues/32) | **Dark mode support** — Use `useColorScheme()` and theme tokens across all screens | Mobile / UI | 🟡 Medium | Open |
+| [#30](https://github.com/Santhosh-zeta/ColdGuard/issues/30) | **Potency distribution chart** — Interactive histogram using Recharts showing full uncertainty | Mobile / UI | 🟡 Medium | Open |
+
+**Infrastructure & Integrations**
+| Issue | Title | Area | Effort | Assigned |
+|-------|-------|------|--------|----------|
+| [#29](https://github.com/Santhosh-zeta/ColdGuard/issues/29) | **Docker container** — Dockerfile + docker-compose for reproducible deployment | DevOps | 🟢 Easy | Open |
+| [#31](https://github.com/Santhosh-zeta/ColdGuard/issues/31) | **DHIS2 export** — Convert ColdGuard results to national health system format | Integration | 🟡 Medium | Open |
+| [#20](https://github.com/Santhosh-zeta/ColdGuard/issues/20) | **Literature Ea values** — Find primary sources for all 12 vaccines' activation energies | Scientific | 🔴 Complex | Open |
 
 #### 📄 Research Paper
 | # | Task | Status |
