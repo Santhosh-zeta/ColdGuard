@@ -177,7 +177,7 @@ export default function InputScreen({ navigation }) {
             style={styles.camera}
             facing="back"
             barcodeScannerSettings={{
-              barcodeTypes: ['qr'],
+              barcodeTypes: ['qr', 'dataMatrix'],
             }}
             onBarcodeScanned={handleBarcodeScanned}
           />
