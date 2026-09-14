@@ -1,0 +1,1 @@
+"""ColdGuard FastAPI REST wrapper."""
