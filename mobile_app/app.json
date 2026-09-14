@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "ColdGuard",
+    "slug": "coldguard-mobile",
+    "version": "1.0.0",
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Scan the vaccine logger QR code."
+        }
+      ]
+    ]
+  }
+}
