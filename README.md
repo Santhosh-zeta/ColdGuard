@@ -12,7 +12,7 @@
 [![Lint](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/lint.yml/badge.svg)](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/lint.yml)
 [![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Android%20%7C%20CLI-8b5cf6.svg)]()
 [![Offline](https://img.shields.io/badge/Works-Offline-f59e0b.svg)]()
-[![Languages](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी%20%7C%20தமிழ்%20%7C%20తెలుగు-ef4444.svg)](mobile_app/src/i18n/)
+[![Languages](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी%20%7C%20தமிழ்%20%7C%20বাংলা%20%7C%20తెలుగు-ef4444.svg)](mobile_app/src/i18n/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 <br/>
@@ -252,7 +252,7 @@ ColdGuard/
 │       ├── engine/arrhenius.js     Full offline JS engine (1000-sample MC)
 │       ├── screens/                Input · Processing · Results screens
 │       ├── components/             DecisionBanner · PotencyChart · Timeline
-│       └── i18n/                   English · Hindi · Tamil · Telugu translations
+│       └── i18n/                   English · Hindi · Tamil · Bengali · Telugu translations
 │
 ├── 🔬 simulation/                  Protocol comparison study
 │   ├── cold_chain_generator.py     District · PHC · Outreach profiles

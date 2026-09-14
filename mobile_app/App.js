@@ -10,10 +10,18 @@ import { LangContext } from './src/i18n/useTranslation';
 
 const Stack = createNativeStackNavigator();
 
+const LANGUAGES = ['en', 'hi', 'ta', 'bn', 'te'];
+const NEXT_LANG_LABELS = { en: 'हिं', hi: 'தமி', ta: 'বাং', bn: 'తె', te: 'EN' };
+
 export default function App() {
   const [lang, setLang] = useState('en');
 
-  const toggleLang = () => setLang(l => l === 'en' ? 'hi' : 'en');
+  const toggleLang = () => {
+    setLang(current => {
+      const idx = LANGUAGES.indexOf(current);
+      return LANGUAGES[(idx + 1) % LANGUAGES.length];
+    });
+  };
 
   return (
     <LangContext.Provider value={{ lang, setLang }}>
@@ -27,7 +35,7 @@ export default function App() {
             headerRight: () => (
               <TouchableOpacity onPress={toggleLang} style={{ padding: 6 }}>
                 <Text style={{ color: '#fff', fontWeight: '600' }}>
-                  {lang === 'en' ? 'हिं' : 'EN'}
+                  {NEXT_LANG_LABELS[lang] || 'EN'}
                 </Text>
               </TouchableOpacity>
             ),
