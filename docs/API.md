@@ -23,7 +23,7 @@ From the repository root:
 
 ```bash
 # Install dependencies (includes fastapi, uvicorn, pydantic and the engine's numerical libraries)
-pip install -r requirements.txt
+pip install -e ".[api]"
 
 # Start the server with auto-reload for development
 python -m uvicorn api.main:app --reload --port 8000
