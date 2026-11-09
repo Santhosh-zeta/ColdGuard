@@ -18,6 +18,7 @@ All notable changes to ColdGuard are documented here. Format follows [Keep a Cha
 
 ### Fixed
 - CSV import now auto-detects the delimiter (comma, semicolon, tab, pipe), accepts decimal commas, a UTF-8 BOM and Windows (cp1252) files, works with in-memory input, and error messages list the columns that were found (#127; based on the approach in #138 by @MM071022)
+- Security: forced patched `minimatch` (>=11.0.5) and `glob` (>=14.0.4) for the mobile app's transitive dependencies via npm `overrides`, resolving two moderate Dependabot alerts (GHSA-g3hv-75wg-m249, GHSA-3g3m-2fjr-6pw4); mobile tests and the Android bundle verified
 - Readings that are NaN or infinite are rejected with a clear error (HTTP 422 on both `/analyse` and `/export/dhis2`) instead of reporting a NaN potency
 - Out-of-order or duplicate timestamps are now rejected (`ValueError` / HTTP 422) instead of producing negative degradation
 - MKT is now time-weighted when timestamps are supplied
