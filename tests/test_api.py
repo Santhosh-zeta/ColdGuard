@@ -144,3 +144,49 @@ def test_docs_endpoint(client):
     response = client.get("/docs")
     assert response.status_code == 200
     assert "swagger" in response.text.lower()
+
+
+# ---------------------------------------------------------------------------
+# POST /batch-analyse
+# ---------------------------------------------------------------------------
+
+GOOD_CSV = "timestamp,temperature_celsius\n" + "\n".join(
+    f"{1694592000 + i * 3600},{4 + (i % 3)}" for i in range(24)
+)
+
+
+def test_batch_valid(client):
+    body = {"batch": [{"vaccine": "DPT", "csv_data": GOOD_CSV},
+                      {"vaccine": "BCG", "csv_data": GOOD_CSV, "label": "lot-2"}],
+            "n_mc_samples": 200}
+    r = client.post("/batch-analyse", json=body)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["summary"]["total"] == 2
+    assert data["summary"]["errors"] == 0
+    assert data["audit_id"].startswith("batch-")
+    assert [x["vaccine"] for x in data["results"]] == ["DPT", "BCG"]
+    assert data["results"][1]["label"] == "lot-2"
+
+
+def test_batch_partial_errors(client):
+    body = {"batch": [{"vaccine": "DPT", "csv_data": GOOD_CSV},
+                      {"vaccine": "NOPE", "csv_data": GOOD_CSV},
+                      {"vaccine": "DPT", "csv_data": "garbage\n1"}],
+            "n_mc_samples": 200}
+    r = client.post("/batch-analyse", json=body)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["summary"]["errors"] == 2
+    assert [x["status"] for x in data["results"]] == ["ok", "error", "error"]
+
+
+def test_batch_large(client):
+    body = {"batch": [{"vaccine": "DPT", "csv_data": GOOD_CSV}] * 25, "n_mc_samples": 100}
+    r = client.post("/batch-analyse", json=body)
+    assert r.status_code == 200
+    assert r.json()["summary"]["total"] == 25
+
+
+def test_batch_empty_rejected(client):
+    assert client.post("/batch-analyse", json={"batch": []}).status_code == 422

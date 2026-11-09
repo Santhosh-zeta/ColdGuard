@@ -91,7 +91,7 @@ def monte_carlo_potency_distribution(
     return potencies
 
 
-def compute_posterior_summary(potency_samples: np.ndarray) -> dict:
+def compute_posterior_summary(potency_samples: np.ndarray, threshold: float | None = None) -> dict:
     """Compute summary statistics from the posterior potency distribution.
 
     Parameters
@@ -105,10 +105,11 @@ def compute_posterior_summary(potency_samples: np.ndarray) -> dict:
         mean, median, std,
         ci_90_lower, ci_90_upper,
         ci_95_lower, ci_95_upper,
-        prob_above_80pct, prob_above_67pct
+        prob_above_80pct, prob_above_67pct,
+        prob_above_threshold (only when *threshold* is given)
     """
     s = np.asarray(potency_samples, dtype=float)
-    return {
+    summary = {
         "mean": float(np.mean(s)),
         "median": float(np.median(s)),
         "std": float(np.std(s, ddof=1)),
@@ -119,3 +120,6 @@ def compute_posterior_summary(potency_samples: np.ndarray) -> dict:
         "prob_above_80pct": float(np.mean(s >= 0.80)),
         "prob_above_67pct": float(np.mean(s >= 0.67)),
     }
+    if threshold is not None:
+        summary["prob_above_threshold"] = float(np.mean(s >= threshold))
+    return summary

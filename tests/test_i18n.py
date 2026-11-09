@@ -4,7 +4,6 @@ Tests for mobile_app internationalization (i18n) and Telugu translations.
 
 import os
 import re
-import pytest
 
 MOBILE_APP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "mobile_app"))
 I18N_DIR = os.path.join(MOBILE_APP_DIR, "src", "i18n")

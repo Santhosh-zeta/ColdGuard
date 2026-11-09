@@ -66,7 +66,9 @@ def make_decision(
     threshold = vaccine_params.min_potency_threshold
 
     # Probability above threshold
-    if threshold >= 0.80:
+    if "prob_above_threshold" in posterior_summary:
+        p_ok = posterior_summary["prob_above_threshold"]
+    elif threshold >= 0.80:
         p_ok = posterior_summary["prob_above_80pct"]
     elif threshold >= 0.67:
         p_ok = posterior_summary["prob_above_67pct"]

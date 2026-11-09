@@ -2,7 +2,7 @@ name: Lint & Format
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -18,4 +18,4 @@ jobs:
       - name: Install ruff
         run: pip install ruff
       - name: Run ruff
-        run: ruff check core/ tests/ simulation/ validation/ coldguard_cli.py --select E,W,F --ignore E501
+        run: ruff check core/ api/ tests/ simulation/ validation/ coldguard_cli.py --select E,W,F --ignore E501

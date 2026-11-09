@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from core.utils import parse_csv_log, run_analysis
 from core.decision import Decision
+from core.vaccine_params import VACCINE_DB
 
 
 BANNER = {
@@ -34,7 +35,7 @@ def main():
     )
     parser.add_argument("--input", "-i", required=True, help="CSV file with timestamp + temperature_celsius columns")
     parser.add_argument("--vaccine", "-v", required=True,
-                        choices=["DPT", "OPV", "MMR", "BCG", "HepB", "IPV", "Rotavirus", "PCV"],
+                        choices=sorted(VACCINE_DB),
                         help="Vaccine type code")
     parser.add_argument("--initial-potency", type=float, default=1.0, metavar="FRAC",
                         help="Initial potency fraction at manufacturing (default 1.0 = 100%%)")
@@ -130,7 +131,7 @@ def main():
     if result["logging_gaps"]:
         print("  Logging gaps (unmonitored periods):")
         for g in result["logging_gaps"]:
-            print(f"    {g['gap_hours']:.1f} h starting {g['gap_start']}")
+            print(f"    {g['duration_hours']:.1f} h after reading #{g['index_before']}")
         print()
 
     top_segments = sorted(result["segment_attribution"], key=lambda s: s["degradation_fraction"], reverse=True)[:3]

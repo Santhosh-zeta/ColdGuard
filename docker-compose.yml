@@ -1,0 +1,11 @@
+services:
+  cli:
+    build: .
+    volumes:
+      - ./data:/app/data:ro
+    # Example: docker compose run --rm cli -i data/raw/demo_dpt_power_outage.csv -v DPT
+  api:
+    build: .
+    entrypoint: ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
