@@ -7,6 +7,7 @@ All notable changes to ColdGuard are documented here. Format follows [Keep a Cha
 ## [Unreleased]
 
 ### Added
+- Mobile: scanning a logger QR code can now import the whole temperature log (timestamps + temperatures) into the input table, with validation and clear errors for unrecognised or invalid payloads; new tested parser `mobile_app/src/engine/qrPayload.js` (#19)
 - CLI: `--version` and `--no-color` flags; ANSI colours are automatically disabled when `stdout` is not a TTY or `NO_COLOR` is set, and `stdout` is reconfigured to UTF-8 when supported
 - `seed` option on `run_analysis`, the CLI (`--seed`) and the API for reproducible results; the seed is echoed in responses
 - `POST /batch-analyse` (many CSV logs per request) and `POST /export/dhis2`; `core/export.py` (`to_dhis2_payload`)
