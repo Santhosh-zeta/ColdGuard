@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use ColdGuard in your work, please cite it using the metadata below."
+type: software
+title: "ColdGuard: Kinetic-Bayesian Vaccine Potency Estimation for India's Cold Chain"
+version: 0.1.0
+date-released: 2026-09-13
+license: MIT
+repository-code: "https://github.com/Santhosh-zeta/ColdGuard"
+url: "https://github.com/Santhosh-zeta/ColdGuard"
+authors:
+  - family-names: "Santhosh"
+    given-names: "Santhosh"
+    alias: "Santhosh-zeta"
+    email: "iamsanthosh2425@gmail.com"
+keywords:
+  - vaccine potency
+  - cold chain
+  - Arrhenius kinetics
+  - Bayesian uncertainty
+  - Monte Carlo
+  - immunisation
+  - public health
+  - India

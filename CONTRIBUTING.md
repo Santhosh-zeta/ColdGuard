@@ -47,6 +47,17 @@ We welcome contributions from:
 
 ---
 
+## Good First Issues
+
+New to the project? Start with the issues labelled
+[`good first issue`](https://github.com/Santhosh-zeta/ColdGuard/labels/good%20first%20issue).
+
+- Browse the label, pick an unassigned issue, and comment to say you are working on it
+- Not sure where to start? Translation fixes (`mobile_app/src/i18n/`) and docs improvements (`docs/`) are good entry points
+- If you want to propose a translation, use the [translation request template](https://github.com/Santhosh-zeta/ColdGuard/issues/new?template=translation_request.md)
+
+---
+
 ## Development Setup
 
 ### Prerequisites
@@ -66,7 +77,7 @@ pip install numpy scipy pandas plotly streamlit pytest
 
 # Run tests to verify setup
 PYTHONPATH=. python -m pytest tests/ -v
-# Expected: 37 passed
+# Expected: 84 passed
 ```
 
 ### Mobile app setup
@@ -96,7 +107,7 @@ core/               ← Scientific engine. Most impactful contributions live her
 ├── decision.py     ← USE/INVESTIGATE/DISCARD logic
 └── vaccine_params.py ← VaccineParams dataclass + VACCINE_DB
 
-tests/              ← pytest suite. Every PR must keep 37/37 green.
+tests/              ← pytest suite. Every PR must keep 84/84 green.
 data/raw/           ← Temperature log CSVs for testing and demo
 mobile_app/src/     ← React Native app + offline JS engine
 web_app/            ← Streamlit web application
@@ -139,7 +150,7 @@ All scientific changes must cite a primary source (WHO document, peer-reviewed p
 
 - Every new feature needs a test
 - Every bug fix needs a regression test
-- The test suite must stay at **37/37 passing** (or more if you add tests)
+- The test suite must stay at **84/84 passing** (or more if you add tests)
 - Run: `PYTHONPATH=. python -m pytest tests/ -v`
 
 ### Commit messages
@@ -167,7 +178,7 @@ data(validation): add HepB stability points from WHO/GPV/98.07
 
 ### PR checklist
 
-- [ ] Tests pass (`37+/37`)
+- [ ] Tests pass (`84+/84`)
 - [ ] New code has corresponding tests
 - [ ] Scientific changes cite a primary source
 - [ ] Mobile JS engine updated if Python core changed
