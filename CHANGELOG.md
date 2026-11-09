@@ -25,6 +25,7 @@ All notable changes to ColdGuard are documented here. Format follows [Keep a Cha
 - Build: invalid `build-backend`, conflicting `setup.py` removed; CI now installs API/PDF dependencies and runs the mobile tests
 
 ### Changed
+- Installation is now modular: the core install no longer pulls in Streamlit, Plotly, Matplotlib, ReportLab or FastAPI; use the `web`, `api`, `dev` and `research` extras (`pip install -e ".[web,api,dev]"`). `requirements.txt` now just installs `-e .[web,api,dev]`. Thanks @nanjundachitra100-del (#103)
 - Monte Carlo is vectorised (about 7× faster)
 - CI: Python 3.11/3.12 matrix, concurrency control, mobile Jest job
 
