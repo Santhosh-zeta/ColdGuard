@@ -7,6 +7,7 @@ All notable changes to ColdGuard are documented here. Format follows [Keep a Cha
 ## [Unreleased]
 
 ### Added
+- CLI: `--validate-only` mode (and `validate` subcommand) to check a temperature log CSV and report data-quality findings (readings count, time span, sampling interval, min/max temperature, logging gaps, freeze readings, non-increasing timestamps, NaN values) in human-readable or `--json` format without running the analysis (#106)
 - Mobile: scanning a logger QR code can now import the whole temperature log (timestamps + temperatures) into the input table, with validation and clear errors for unrecognised or invalid payloads; new tested parser `mobile_app/src/engine/qrPayload.js` (#19)
 - CLI: `--version` and `--no-color` flags; ANSI colours are automatically disabled when `stdout` is not a TTY or `NO_COLOR` is set, and `stdout` is reconfigured to UTF-8 when supported
 - `seed` option on `run_analysis`, the CLI (`--seed`) and the API for reproducible results; the seed is echoed in responses
