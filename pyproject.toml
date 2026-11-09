@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "coldguard"
@@ -43,9 +43,15 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4.0",
+    "httpx>=0.27.0",
     "ruff>=0.1.0",
     "black>=23.0.0",
     "jupyter>=1.0.0",
+]
+api = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "pydantic>=2.0.0",
 ]
 research = [
     "pymc>=5.0.0",

@@ -32,7 +32,7 @@ app = FastAPI(
 # Request/Response models
 class AnalysisRequest(BaseModel):
     """Request model for POST /analyse endpoint."""
-    vaccine: str = Field(..., example="DPT")
+    vaccine: str = Field(..., json_schema_extra={"example": "DPT"})
     timestamps: List[float] = Field(
         ...,
         description="Unix timestamps (seconds since epoch) for each temperature reading",
@@ -130,8 +130,8 @@ class AnalysisResponse(BaseModel):
 
 class VaccineInfo(BaseModel):
     """Vaccine metadata model."""
-    key: str = Field(..., example="DPT")
-    name: str = Field(..., example="DPT (Diphtheria-Pertussis-Tetanus)")
+    key: str = Field(..., json_schema_extra={"example": "DPT"})
+    name: str = Field(..., json_schema_extra={"example": "DPT (Diphtheria-Pertussis-Tetanus)"})
     freeze_sensitive: bool = Field(..., example=True)
 
 
