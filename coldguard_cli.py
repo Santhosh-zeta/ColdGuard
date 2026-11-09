@@ -9,6 +9,7 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
 from enum import Enum
 from pathlib import Path
@@ -16,24 +17,50 @@ from pathlib import Path
 # Allow running from repo root without installing the package
 sys.path.insert(0, str(Path(__file__).parent))
 
+from core import __version__
 from core.utils import parse_csv_log, run_analysis
 from core.decision import Decision
 from core.vaccine_params import VACCINE_DB
 
 
+BANNER_TEXT = {
+    Decision.USE:         "✅  USE  — Vaccine retains sufficient potency. Safe to administer.",
+    Decision.INVESTIGATE: "⚠️  INVESTIGATE  — Uncertainty high. Consult District Cold Chain Officer.",
+    Decision.DISCARD:     "❌  DISCARD  — Estimated potency below threshold. Do not administer.",
+}
+
+BANNER_COLOR = {
+    Decision.USE:         "\033[92m",
+    Decision.INVESTIGATE: "\033[93m",
+    Decision.DISCARD:     "\033[91m",
+}
+
 BANNER = {
-    Decision.USE:         "\033[92m✅  USE  — Vaccine retains sufficient potency. Safe to administer.\033[0m",
-    Decision.INVESTIGATE: "\033[93m⚠️  INVESTIGATE  — Uncertainty high. Consult District Cold Chain Officer.\033[0m",
-    Decision.DISCARD:     "\033[91m❌  DISCARD  — Estimated potency below threshold. Do not administer.\033[0m",
+    decision: f"{BANNER_COLOR[decision]}{text}\033[0m"
+    for decision, text in BANNER_TEXT.items()
 }
 
 
+def should_use_color(no_color: bool = False) -> bool:
+    if no_color or os.environ.get("NO_COLOR", "") != "":
+        return False
+    return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
+
+
+def format_banner(decision: Decision, *, use_color: bool = True) -> str:
+    return BANNER[decision] if use_color else BANNER_TEXT[decision]
+
+
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(
         description="ColdGuard: Kinetic-Bayesian Vaccine Potency Estimator",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
+    parser.add_argument("--version", action="version", version=f"coldguard {__version__}")
     parser.add_argument("--input", "-i", required=True, help="CSV file with timestamp + temperature_celsius columns")
     parser.add_argument("--vaccine", "-v", required=True,
                         choices=sorted(VACCINE_DB),
@@ -50,6 +77,8 @@ def main():
                         help="Write full JSON result to FILE instead of stdout summary")
     parser.add_argument("--json", action="store_true",
                         help="Print full JSON result to stdout")
+    parser.add_argument("--no-color", action="store_true",
+                        help="Disable ANSI colour codes in output")
     args = parser.parse_args()
 
     csv_path = Path(args.input)
@@ -124,7 +153,7 @@ def main():
         print("  🧊 FREEZE WARNING: freeze events detected.")
         print()
 
-    print(BANNER[dec_out.decision])
+    print(format_banner(dec_out.decision, use_color=should_use_color(args.no_color)))
     print()
     print(f"  Potency estimate : {dec_out.estimated_potency_pct:.1f}%")
     print(f"  90% CI           : {dec_out.ci_90[0]:.1f}% – {dec_out.ci_90[1]:.1f}%")
