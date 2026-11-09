@@ -20,7 +20,7 @@ from .arrhenius import (
 )
 from .bayesian import monte_carlo_potency_distribution, compute_posterior_summary
 from .decision import make_decision
-from .vaccine_params import VACCINE_DB
+from .vaccine_params import FREEZE_THRESHOLD_C, VACCINE_DB
 
 
 # ---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ def validate_temperature_log(
 
 
 def detect_freeze_events(
-    temperatures_C: np.ndarray, threshold: float = -1.0
+    temperatures_C: np.ndarray, threshold: float = FREEZE_THRESHOLD_C
 ) -> List[Dict[str, Any]]:
     """Identify contiguous segments where temperature falls below *threshold*.
 
@@ -148,7 +148,7 @@ def detect_freeze_events(
     ----------
     temperatures_C : array-like
     threshold : float
-        Temperature (°C) below which a freeze event is declared. Default −1°C.
+        Temperature (°C) below which a freeze event is declared. Default ``FREEZE_THRESHOLD_C`` (0°C).
 
     Returns
     -------
@@ -216,6 +216,7 @@ def run_analysis(
     n_mc_samples: int = 5_000,
     logger_accuracy_C: float = 0.5,
     rng: Optional[np.random.Generator] = None,
+    seed: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Run the complete ColdGuard analysis pipeline.
 
@@ -235,6 +236,14 @@ def run_analysis(
         Data-logger 1-sigma accuracy in °C.
     rng : np.random.Generator, optional
         Seeded generator for reproducibility.
+    seed : int, optional
+        Convenience alternative to *rng*; the same seed gives identical output.
+
+    Raises
+    ------
+    ValueError
+        If the vaccine is unknown, fewer than 2 readings are given, lengths
+        differ, or timestamps are not strictly increasing.
 
     Returns
     -------
@@ -261,6 +270,17 @@ def run_analysis(
     ts = np.asarray(timestamps, dtype=float)
     tc = np.asarray(temperatures_C, dtype=float)
 
+    if len(ts) != len(tc):
+        raise ValueError("timestamps and temperatures_C must have the same length")
+    if len(ts) < 2:
+        raise ValueError("At least 2 temperature readings are required")
+    if np.any(np.diff(ts) <= 0):
+        raise ValueError(
+            "Timestamps must be strictly increasing (found out-of-order or duplicate timestamps)"
+        )
+    if rng is None and seed is not None:
+        rng = np.random.default_rng(seed)
+
     # Data quality
     warnings = validate_temperature_log(ts, tc)
     freeze_events = detect_freeze_events(tc)
@@ -270,7 +290,7 @@ def run_analysis(
     thermal_potency = compute_potency(ts, tc, params.Ea_mean, params.A, initial_potency)
     freeze_retention = compute_freeze_damage_fraction(ts, tc, params)
     point_potency = thermal_potency * freeze_retention
-    mkt_C = compute_mkt(tc, Ea=params.Ea_mean)
+    mkt_C = compute_mkt(tc, Ea=params.Ea_mean, timestamps=ts)
     mkt_pot = mkt_potency_estimate(ts, tc, params)
     segments = compute_segment_attribution(ts, tc, params.Ea_mean, params.A)
 
@@ -303,4 +323,5 @@ def run_analysis(
         "posterior_summary": posterior,
         "decision_output": decision_out,
         "potency_samples": samples,
+        "seed": seed,
     }

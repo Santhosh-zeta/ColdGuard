@@ -31,3 +31,13 @@ def test_all_vaccines_accepted():
 def test_every_scenario_runs(csv):
     r = run_cli("-i", str(csv), "-v", "DPT", "--samples", "200")
     assert r.returncode == 0, r.stderr
+
+
+def test_json_output_is_clean_and_decision_is_a_string():
+    import json
+    r = run_cli("-i", "data/raw/normal_cold_storage.csv", "-v", "DPT", "--samples", "200",
+                "--seed", "1", "--json")
+    assert r.returncode == 0, r.stderr
+    data = json.loads(r.stdout)
+    assert data["decision_output"]["decision"] in {"USE", "INVESTIGATE", "DISCARD"}
+    assert "__objclass__" not in r.stdout

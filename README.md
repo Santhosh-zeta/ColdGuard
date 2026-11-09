@@ -39,6 +39,21 @@ Current protocols respond with one of two equally bad choices:
 
 ---
 
+## What's New
+
+- 🔁 **Reproducible results** — `--seed` (CLI) / `seed` (API, Python) gives byte-identical output
+- 🛡️ **Safer on bad input** — out-of-order or duplicate timestamps are rejected (API returns 422) instead of silently inflating potency
+- ⏱️ **Time-weighted MKT** — irregular logging intervals no longer bias Mean Kinetic Temperature
+- ❄️ **One freeze threshold** (0 °C) for both freeze-event detection and freeze-damage accounting
+- ⚡ **Vectorised Monte Carlo** — about 7× faster at 5,000 samples × 1,000 readings
+- 🎯 **Exact per-vaccine thresholds** — the decision uses P(potency ≥ that vaccine's threshold)
+- 🔌 **Integrations** — batch REST endpoint, DHIS2 export, Docker
+- 🌐 **Complete Tamil & Bengali** translations, with an automated key-parity test across all 6 languages
+
+See [CHANGELOG.md](CHANGELOG.md) for details.
+
+---
+
 ## How It Works
 
 ```mermaid
@@ -149,11 +164,32 @@ print(dec.ci_90)                       # (99.2, 100.0)
 print(dec.natural_language_explanation)
 ```
 
+### REST API & Docker
+
+```bash
+# Local
+pip install -r requirements.txt
+uvicorn api.main:app --reload          # docs at http://localhost:8000/docs
+
+# Docker (CLI + API, no local Python needed)
+docker compose up api
+docker compose run --rm cli -i data/raw/demo_dpt_power_outage.csv -v DPT --seed 42
+```
+
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /analyse` | Analyse one temperature log (optional `seed` for reproducible output) |
+| `POST /batch-analyse` | Analyse many CSV logs in one request, with per-item error handling |
+| `POST /export/dhis2` | Analyse and return a DHIS2 `dataValues` payload |
+| `GET /vaccines`, `GET /health` | Metadata |
+
+Full reference: [docs/API.md](docs/API.md).
+
 ### Run Tests
 
 ```bash
 PYTHONPATH=. python -m pytest tests/ -v
-# 94 passed ✅
+# 107 passed ✅
 ```
 
 ---
@@ -289,7 +325,7 @@ ColdGuard/
 │   ├── API.md                      REST API reference + Python core API
 │   └── USER_GUIDE.md              Step-by-step guide for field staff
 │
-├── 🧪 tests/                       94 tests · all passing
+├── 🧪 tests/                       107 tests · all passing
 │   ├── test_arrhenius.py           9 tests
 │   ├── test_bayesian.py            7 tests
 │   ├── test_decision.py            9 tests
@@ -341,7 +377,7 @@ timeline
     section v1.0 — Current
         Scientific engine        : Arrhenius + Monte Carlo
         Web + Mobile apps        : Streamlit + React Native
-        94 passing tests         : Full test suite
+        107 passing tests         : Full test suite
         CLI + CI pipeline        : GitHub Actions
         REST API                 : FastAPI wrapper (/analyse, /vaccines, /health)
         12 vaccines              : DPT OPV MMR BCG HepB IPV Rotavirus PCV YF JE Typhoid MenA
@@ -393,37 +429,16 @@ timeline
 
 ---
 
-### 🙋 Open Issues & Community Contributions
+### 🙋 Contributing — Find Something to Work On
 
-#### ✅ Recently Completed
-| Issue | Title | Status |
-|-------|-------|--------|
-| [#22](https://github.com/Santhosh-zeta/ColdGuard/issues/22) | Kannada (ಕನ್ನಡ) translations | ✅ Merged |
-| [#28](https://github.com/Santhosh-zeta/ColdGuard/issues/28) | FastAPI REST wrapper for Python engine | ✅ Merged |
-| [#27](https://github.com/Santhosh-zeta/ColdGuard/issues/27) | PDF report generator with ReportLab | ✅ Merged |
+Issue tables go stale, so the live list is on GitHub:
 
-#### 🔄 Currently Open — Help Wanted!
+- 🌱 [**Good first issues**](https://github.com/Santhosh-zeta/ColdGuard/labels/good%20first%20issue) — small, well-scoped, with acceptance criteria
+- 🆘 [**Help wanted**](https://github.com/Santhosh-zeta/ColdGuard/labels/help%20wanted) — bigger features and research questions
+- 🔬 [**Science**](https://github.com/Santhosh-zeta/ColdGuard/labels/scientific) — literature data, validation, uncertainty models
+- 🌐 [**Translations**](https://github.com/Santhosh-zeta/ColdGuard/labels/i18n) — add your language
 
-**High Priority (Core Functionality)**
-| Issue | Title | Area | Effort | Assigned |
-|-------|-------|------|--------|----------|
-| [#39](https://github.com/Santhosh-zeta/ColdGuard/issues/39) | **Batch CSV import API** — `POST /batch-analyse` for processing 20+ vaccine lots in one request | REST API / Backend | 🟡 Medium | Done |
-| [#38](https://github.com/Santhosh-zeta/ColdGuard/issues/38) | **API documentation** — README section, example requests/responses, deployment guide | Docs | 🟢 Easy | Open |
-| [#4](https://github.com/Santhosh-zeta/ColdGuard/issues/4) | **Real validation data** — Extract published Ea values for HepB, IPV, BCG from WHO literature | Research / Data | 🔴 Complex | @kanagarajSCK |
-
-**Mobile App Enhancements**
-| Issue | Title | Area | Effort | Assigned |
-|-------|-------|------|--------|----------|
-| [#19](https://github.com/Santhosh-zeta/ColdGuard/issues/19) | **QR code scanner** — Scan Berlinger Fridge-tag logger to auto-import temperature logs | Mobile / React Native | 🟡 Medium | @kanagarajSCK |
-| [#32](https://github.com/Santhosh-zeta/ColdGuard/issues/32) | **Dark mode support** — Use `useColorScheme()` and theme tokens across all screens | Mobile / UI | 🟡 Medium | Open |
-| [#30](https://github.com/Santhosh-zeta/ColdGuard/issues/30) | **Potency distribution chart** — Interactive histogram using Recharts showing full uncertainty | Mobile / UI | 🟡 Medium | Open |
-
-**Infrastructure & Integrations**
-| Issue | Title | Area | Effort | Assigned |
-|-------|-------|------|--------|----------|
-| [#29](https://github.com/Santhosh-zeta/ColdGuard/issues/29) | **Docker container** — Dockerfile + docker-compose for reproducible deployment | DevOps | 🟢 Easy | Open |
-| [#31](https://github.com/Santhosh-zeta/ColdGuard/issues/31) | **DHIS2 export** — Convert ColdGuard results to national health system format | Integration | 🟡 Medium | Open |
-| [#20](https://github.com/Santhosh-zeta/ColdGuard/issues/20) | **Literature Ea values** — Find primary sources for all 12 vaccines' activation energies | Scientific | 🔴 Complex | Open |
+Read [CONTRIBUTING.md](CONTRIBUTING.md), pick an issue, comment "I'll take this", and open a PR. A maintainer will respond within a few days.
 
 #### 📄 Research Paper
 | # | Task | Status |

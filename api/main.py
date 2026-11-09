@@ -22,6 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 # Allow importing from repo root
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from core import __version__
 from core.export import to_dhis2_payload
 from core.utils import parse_csv_log, run_analysis
 from core.vaccine_params import VACCINE_DB
@@ -29,7 +30,7 @@ from core.vaccine_params import VACCINE_DB
 app = FastAPI(
     title="ColdGuard API",
     description="Kinetic-Bayesian vaccine potency estimator",
-    version="1.0.0",
+    version=__version__,
 )
 
 
@@ -50,6 +51,7 @@ class AnalysisRequest(BaseModel):
     n_mc_samples: int = Field(1000, ge=100, le=100000, description="Monte Carlo sample count")
     initial_potency: float = Field(1.0, ge=0, le=1.0, description="Initial potency fraction (0-1)")
     logger_accuracy_c: float = Field(0.5, ge=0.1, le=2.0, description="Temperature sensor uncertainty in °C")
+    seed: Optional[int] = Field(None, ge=0, description="RNG seed for reproducible results")
 
     @field_validator('vaccine')
     @classmethod
@@ -72,6 +74,8 @@ class AnalysisRequest(BaseModel):
     def validate_timestamps(cls, v):
         if len(v) < 2:
             raise ValueError("At least 2 timestamps required")
+        if any(b <= a for a, b in zip(v, v[1:])):
+            raise ValueError("timestamps must be strictly increasing")
         return v
 
     @model_validator(mode='after')
@@ -100,6 +104,7 @@ class AnalysisResponse(BaseModel):
     mkt_c: float = Field(..., alias="mkt_C", description="Mean Kinetic Temperature in Celsius")
     model_config = ConfigDict(populate_by_name=True)
     point_estimate_potency: float
+    seed: Optional[int] = None
     freeze_events: List[dict]
     data_quality_warnings: List[str]
     logging_gaps: List[dict]
@@ -123,6 +128,7 @@ class AnalysisResponse(BaseModel):
             potency_mean_pct=dec_out.estimated_potency_pct,
             mkt_C=result["mkt_C"],
             point_estimate_potency=result["point_estimate_potency"],
+            seed=result.get("seed"),
             freeze_events=result["freeze_events"],
             data_quality_warnings=result["data_quality_warnings"],
             logging_gaps=result["logging_gaps"],
@@ -146,7 +152,7 @@ class VaccinesResponse(BaseModel):
 class HealthResponse(BaseModel):
     """Response model for GET /health endpoint."""
     status: str = "ok"
-    version: str = "1.0.0"
+    version: str = __version__
 
 
 # Endpoints
@@ -167,6 +173,7 @@ def analyse(request: AnalysisRequest):
             initial_potency=request.initial_potency,
             n_mc_samples=request.n_mc_samples,
             logger_accuracy_C=request.logger_accuracy_c,
+            seed=request.seed,
         )
         return AnalysisResponse.from_analysis(result)
     except Exception as e:
@@ -266,6 +273,7 @@ def export_dhis2(request: DHIS2ExportRequest):
             initial_potency=request.initial_potency,
             n_mc_samples=request.n_mc_samples,
             logger_accuracy_C=request.logger_accuracy_c,
+            seed=request.seed,
         )
         return to_dhis2_payload(result, request.org_unit, request.period)
     except Exception as e:
@@ -296,7 +304,7 @@ def get_vaccines():
 @app.get("/health", response_model=HealthResponse, tags=["metadata"])
 def health():
     """Health check endpoint."""
-    return HealthResponse(status="ok", version="1.0.0")
+    return HealthResponse(status="ok", version=__version__)
 
 
 @app.get("/", tags=["metadata"])
@@ -304,7 +312,7 @@ async def root():
     """API documentation is available at /docs."""
     return {
         "name": "ColdGuard API",
-        "version": "1.0.0",
+        "version": __version__,
         "docs": "/docs",
         "endpoints": {
             "POST /analyse": "Analyze vaccine potency from temperature log",

@@ -11,6 +11,10 @@ from typing import Dict
 
 R_GAS = 8.314  # J/(mol·K)
 
+# Single freeze threshold used for BOTH freeze-event detection and freeze-damage
+# accumulation (WHO/GPV: freeze-sensitive vaccines are damaged below 0 °C).
+FREEZE_THRESHOLD_C = 0.0
+
 
 @dataclass
 class VaccineParams:

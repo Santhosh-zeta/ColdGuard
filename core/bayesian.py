@@ -12,8 +12,8 @@ from typing import Optional
 
 import numpy as np
 
-from .arrhenius import integrate_degradation, compute_freeze_damage_fraction
-from .vaccine_params import VaccineParams
+from .arrhenius import compute_freeze_damage_fraction
+from .vaccine_params import R_GAS, VaccineParams
 
 
 def monte_carlo_potency_distribution(
@@ -70,7 +70,6 @@ def monte_carlo_potency_distribution(
     # --- sample A (log-normal)
     log_A_mean = math.log(vaccine_params.A)
     log_A_samples = rng.normal(log_A_mean, vaccine_params.A_log_std, size=n_samples)
-    A_samples = np.exp(log_A_samples)
 
     # --- temperature noise: shape (n_samples, len(tc))
     noise = rng.normal(0.0, logger_accuracy_C, size=(n_samples, len(tc)))
@@ -81,10 +80,17 @@ def monte_carlo_potency_distribution(
     # uncertainty. The same retention factor applies to all MC samples.
     freeze_retention = compute_freeze_damage_fraction(ts, tc, vaccine_params)
 
-    potencies = np.empty(n_samples, dtype=float)
-    for i in range(n_samples):
-        D = integrate_degradation(ts, tc_perturbed[i], Ea_samples[i], A_samples[i])
-        potencies[i] = initial_potency * math.exp(-D) * freeze_retention
+    # Vectorised trapezoidal integration of k(T) dt, chunked to bound memory.
+    # Computed in log space (k = exp(ln A - Ea / (R T))) to avoid overflow.
+    dt_hours = np.diff(ts) / 3600.0
+    D = np.empty(n_samples, dtype=float)
+    chunk = max(1, 2_000_000 // max(len(tc), 1))
+    for start in range(0, n_samples, chunk):
+        sl = slice(start, start + chunk)
+        T_K = tc_perturbed[sl] + 273.15
+        k = np.exp(log_A_samples[sl, None] - Ea_samples[sl, None] / (R_GAS * T_K))
+        D[sl] = np.sum(0.5 * (k[:, :-1] + k[:, 1:]) * dt_hours, axis=1)
+    potencies = initial_potency * np.exp(-D) * freeze_retention
 
     # Clamp to [0, 1]
     potencies = np.clip(potencies, 0.0, 1.0)

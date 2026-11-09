@@ -9,6 +9,8 @@ Decision    – USE / INVESTIGATE / DISCARD enum
 DecisionOutput – dataclass returned by make_decision
 """
 
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
+
 from .vaccine_params import VACCINE_DB, VaccineParams, R_GAS
 from .arrhenius import (
     arrhenius_k,
@@ -30,7 +32,13 @@ from .utils import (
     run_analysis,
 )
 
+try:
+    __version__ = _pkg_version("coldguard")
+except PackageNotFoundError:  # running from a source checkout
+    __version__ = "0.1.0"
+
 __all__ = [
+    "__version__",
     "VACCINE_DB",
     "VaccineParams",
     "R_GAS",

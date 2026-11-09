@@ -7,6 +7,26 @@ All notable changes to ColdGuard are documented here. Format follows [Keep a Cha
 ## [Unreleased]
 
 ### Added
+- `seed` option on `run_analysis`, the CLI (`--seed`) and the API for reproducible results; the seed is echoed in responses
+- `POST /batch-analyse` (many CSV logs per request) and `POST /export/dhis2`; `core/export.py` (`to_dhis2_payload`)
+- Dockerfile, docker-compose.yml, `.dockerignore`
+- Complete Tamil and Bengali translations; automated i18n key-parity test
+- `CITATION.cff`, `.editorconfig`, translation issue template, REST API docs
+
+### Fixed
+- Out-of-order or duplicate timestamps are now rejected (`ValueError` / HTTP 422) instead of producing negative degradation
+- MKT is now time-weighted when timestamps are supplied
+- Freeze-event detection and freeze-damage accounting now share one threshold (0 °C, `FREEZE_THRESHOLD_C`)
+- Decision uses P(potency ≥ the vaccine's own threshold) instead of the 0.80/0.67 buckets
+- CLI: crash on logging gaps, only 8 of 12 vaccines accepted, and `--json` serialising the `Decision` enum as a raw class dict
+- Mobile: duplicate/mismatched dependency versions; added missing `@react-native-picker/picker` and `babel-preset-expo`; aligned to Expo SDK 57
+- API version now comes from package metadata; pydantic v2 idioms; correct posterior-mean potency
+- Build: invalid `build-backend`, conflicting `setup.py` removed; CI now installs API/PDF dependencies and runs the mobile tests
+
+### Changed
+- Monte Carlo is vectorised (about 7× faster)
+- CI: Python 3.11/3.12 matrix, concurrency control, mobile Jest job
+
 - Freeze damage accumulator: first-order freeze kinetics in `core/arrhenius.py`, applied to all freeze-sensitive vaccines (DPT, HepB, IPV, PCV, Typhoid, MenA)
 - QR code scanner in the mobile app for Berlinger Fridge-tag logger IDs (camera-based)
 - VACCINE_DB expanded from 8 to 12 UIP vaccines: added Yellow Fever (YF), Japanese Encephalitis (JE), Typhoid Vi-PS, and Meningitis A (MenA)
