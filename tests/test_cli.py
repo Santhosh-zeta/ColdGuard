@@ -41,3 +41,13 @@ def test_json_output_is_clean_and_decision_is_a_string():
     data = json.loads(r.stdout)
     assert data["decision_output"]["decision"] in {"USE", "INVESTIGATE", "DISCARD"}
     assert "__objclass__" not in r.stdout
+
+
+def test_blank_reading_fails_with_a_clear_message(tmp_path):
+    log = tmp_path / "blank_cell.csv"
+    log.write_text(
+        "timestamp,temperature_celsius\n0,5\n3600,\n7200,5\n", encoding="utf-8"
+    )
+    r = run_cli("-i", str(log), "-v", "DPT", "--samples", "200")
+    assert r.returncode == 1
+    assert "non-finite values at index 1 in temperatures_C" in r.stderr

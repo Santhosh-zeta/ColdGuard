@@ -176,6 +176,8 @@ def analyse(request: AnalysisRequest):
             seed=request.seed,
         )
         return AnalysisResponse.from_analysis(result)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=f"Invalid analysis request: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Analysis failed: {str(e)}")
 
