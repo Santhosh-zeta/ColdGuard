@@ -123,7 +123,7 @@ graph TB
 ```bash
 git clone https://github.com/Santhosh-zeta/ColdGuard.git
 cd ColdGuard
-pip install -r requirements.txt
+pip install -e ".[web]"
 
 PYTHONPATH=. streamlit run web_app/app.py
 ```
@@ -168,7 +168,7 @@ print(dec.natural_language_explanation)
 
 ```bash
 # Local
-pip install -r requirements.txt
+pip install -e ".[api]"
 uvicorn api.main:app --reload          # docs at http://localhost:8000/docs
 
 # Docker (CLI + API, no local Python needed)
@@ -188,6 +188,7 @@ Full reference: [docs/API.md](docs/API.md).
 ### Run Tests
 
 ```bash
+pip install -e ".[web,api,dev]"
 PYTHONPATH=. python -m pytest tests/ -v
 # 107 passed ✅
 ```
