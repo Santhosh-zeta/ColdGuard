@@ -118,6 +118,8 @@ graph TB
 
 ## Quick Start
 
+> **Install options.** `pip install -e .` installs only the core engine (NumPy, SciPy, pandas, python-dateutil), which is all the CLI and the Python API need. Optional extras: `web` (Streamlit, Plotly, Matplotlib, ReportLab), `api` (FastAPI, Uvicorn, Pydantic), `dev` (pytest, ruff, Jupyter, …) and `research` (PyMC, ArviZ). Combine them, e.g. `pip install -e ".[web,api,dev]"`.
+
 ### Web App
 
 ```bash
