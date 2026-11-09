@@ -1,0 +1,49 @@
+name: Logger format sample
+description: Share an anonymised temperature logger export to help build an importer.
+title: "[Logger format]: "
+body:
+  - type: input
+    id: logger
+    attributes:
+      label: Logger vendor and model
+      placeholder: e.g. LogTag TRIX-8
+    validations:
+      required: true
+  - type: input
+    id: software
+    attributes:
+      label: Export software and version
+      placeholder: Include the version if known
+    validations:
+      required: true
+  - type: input
+    id: format
+    attributes:
+      label: File format
+      placeholder: e.g. CSV with semicolon separators
+    validations:
+      required: true
+  - type: textarea
+    id: headers
+    attributes:
+      label: Export headers
+      description: Paste the anonymised column names and any non-identifying header lines.
+    validations:
+      required: true
+  - type: input
+    id: time-and-units
+    attributes:
+      label: Time zone and temperature units
+      placeholder: e.g. UTC+05:30 and degrees Celsius
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Anonymised sample export
+      description: >
+        Attach a small sample or paste an anonymised excerpt in a code block.
+        Remove any patient or facility identifiers, including names, addresses,
+        device identifiers and identifying file metadata, before sharing.
+    validations:
+      required: true

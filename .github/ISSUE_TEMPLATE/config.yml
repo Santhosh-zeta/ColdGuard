@@ -1,6 +1,9 @@
 blank_issues_enabled: false
 
 contact_links:
+  - name: Logger import adapter roadmap
+    url: https://github.com/Santhosh-zeta/ColdGuard/issues/69
+    about: See which logger formats are planned before submitting an anonymised export.
   - name: Ask a Question
     url: https://github.com/Santhosh-zeta/ColdGuard/discussions
     about: Use GitHub Discussions for questions, ideas, and general conversation about ColdGuard.
