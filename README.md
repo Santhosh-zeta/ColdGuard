@@ -6,6 +6,8 @@
 
 *Don't discard vaccines that are still potent. Don't administer ones that aren't.*
 
+[🇮🇳 हिन्दी](README.hi.md)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11+-3b82f6.svg)](https://python.org)
 [![CI](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/test.yml/badge.svg)](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/test.yml)
