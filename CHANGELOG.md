@@ -6,9 +6,12 @@ All notable changes to ColdGuard are documented here. Format follows [Keep a Cha
 
 ## [Unreleased]
 
+### Added
+- Freeze damage accumulator: first-order freeze kinetics in `core/arrhenius.py`, applied to all freeze-sensitive vaccines (DPT, HepB, IPV, PCV, Typhoid, MenA)
+- QR code scanner in the mobile app for Berlinger Fridge-tag logger IDs (camera-based)
+- VACCINE_DB expanded from 8 to 12 UIP vaccines: added Yellow Fever (YF), Japanese Encephalitis (JE), Typhoid Vi-PS, and Meningitis A (MenA)
+
 ### Planned
-- Freeze damage accumulator for DPT, HepB, IPV, PCV
-- QR code scanner for Berlinger Fridge-tag logger IDs
 - Real literature-sourced validation data for BCG, HepB, IPV, Rotavirus, PCV
 - PyMC full Bayesian MCMC posterior as alternative to Monte Carlo
 - eVIN API integration for national cold chain reporting

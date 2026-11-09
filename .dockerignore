@@ -1,0 +1,12 @@
+.git
+.github
+**/__pycache__
+**/*.pyc
+.pytest_cache
+node_modules
+mobile_app
+web_app
+notebooks
+paper
+tests
+docs

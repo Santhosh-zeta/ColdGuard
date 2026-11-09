@@ -12,7 +12,7 @@
 [![Lint](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/lint.yml/badge.svg)](https://github.com/Santhosh-zeta/ColdGuard/actions/workflows/lint.yml)
 [![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Android%20%7C%20CLI-8b5cf6.svg)]()
 [![Offline](https://img.shields.io/badge/Works-Offline-f59e0b.svg)]()
-[![Languages](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी%20%7C%20தமிழ்%20%7C%20বাংলা%20%7C%20తెలుగు-ef4444.svg)](mobile_app/src/i18n/)
+[![Languages](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी%20%7C%20தமிழ்%20%7C%20বাংলা%20%7C%20తెలుగు%20%7C%20ಕನ್ನಡ-ef4444.svg)](mobile_app/src/i18n/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 <br/>
@@ -108,7 +108,7 @@ graph TB
 ```bash
 git clone https://github.com/Santhosh-zeta/ColdGuard.git
 cd ColdGuard
-pip install numpy scipy pandas plotly streamlit
+pip install -r requirements.txt
 
 PYTHONPATH=. streamlit run web_app/app.py
 ```
@@ -153,10 +153,16 @@ print(dec.natural_language_explanation)
 
 ```bash
 PYTHONPATH=. python -m pytest tests/ -v
-# 37 passed ✅
+# 94 passed ✅
 ```
 
 ---
+
+## Integrations
+
+- **DHIS2** — `POST /export/dhis2` (or `core.export.to_dhis2_payload`) emits a `dataValues` payload for national health-information dashboards. See [docs/API.md](docs/API.md).
+- **REST batch audits** — `POST /batch-analyse` analyses many CSV logs in one call.
+- **Docker** — `docker compose up api` serves the REST API on port 8000.
 
 ## Supported Vaccines — India UIP
 
@@ -252,7 +258,7 @@ ColdGuard/
 │       ├── engine/arrhenius.js     Full offline JS engine (1000-sample MC)
 │       ├── screens/                Input · Processing · Results screens
 │       ├── components/             DecisionBanner · PotencyChart · Timeline
-│       └── i18n/                   English · Hindi · Tamil · Bengali · Telugu translations
+│       └── i18n/                   English · Hindi · Tamil · Bengali · Telugu · Kannada translations
 │
 ├── 🔬 simulation/                  Protocol comparison study
 │   ├── cold_chain_generator.py     District · PHC · Outreach profiles
@@ -280,14 +286,18 @@ ColdGuard/
 │
 ├── 📚 docs/
 │   ├── SCIENCE.md                  Full Arrhenius + Bayesian derivation
-│   ├── API.md                      Complete public API reference
+│   ├── API.md                      REST API reference + Python core API
 │   └── USER_GUIDE.md              Step-by-step guide for field staff
 │
-├── 🧪 tests/                       45 tests · all passing
-│   ├── test_arrhenius.py           8 tests
+├── 🧪 tests/                       94 tests · all passing
+│   ├── test_arrhenius.py           9 tests
 │   ├── test_bayesian.py            7 tests
-│   ├── test_decision.py            8 tests
-│   └── test_scenarios.py           22 scenario-level integration tests
+│   ├── test_decision.py            9 tests
+│   ├── test_scenarios.py           19 scenario-level integration tests
+│   ├── test_api.py                 10 tests
+│   ├── test_cli.py                 17 tests
+│   ├── test_i18n.py                12 tests
+│   └── test_pdf_report.py          1 test
 │
 ├── coldguard_cli.py                Command-line runner
 └── .github/workflows/test.yml      CI: runs all tests on every push
@@ -331,16 +341,16 @@ timeline
     section v1.0 — Current
         Scientific engine        : Arrhenius + Monte Carlo
         Web + Mobile apps        : Streamlit + React Native
-        45 passing tests         : Full test suite
+        94 passing tests         : Full test suite
         CLI + CI pipeline        : GitHub Actions
+        REST API                 : FastAPI wrapper (/analyse, /vaccines, /health)
         12 vaccines              : DPT OPV MMR BCG HepB IPV Rotavirus PCV YF JE Typhoid MenA
-        4 languages              : English Hindi Tamil Telugu
+        6 languages              : English Hindi Tamil Telugu Bengali Kannada
         Freeze damage model      : First-order kinetics accumulator
+        QR code scanner          : Camera-based logger ID scan
+        PDF report               : Shareable audit-trail report
     section v1.1 — Near Term
         Real validation data     : Source from WHO literature
-        QR code scanner          : Camera-based logger ID scan
-        More languages           : Kannada Bengali
-        PDF report               : Shareable audit-trail report
     section v1.2 — Research
         Full paper               : Submit to journal/conference
         eVIN integration         : National cold chain API
@@ -367,7 +377,7 @@ timeline
 #### 📱 Feature Completeness
 | # | Improvement | Impact | Effort |
 |---|------------|--------|--------|
-| 6 | **QR code scanner** in mobile app — scan Berlinger Fridge-tag logger ID via camera (spec Week 18 requirement) | 🟡 Field usability | Medium |
+| 6 | ~~**QR code scanner**~~ ✅ Done — camera-based QR scanner in mobile app for Berlinger Fridge-tag logger IDs | — | — |
 | 7 | **Hindi translation review** — `hi.js` needs review by a Hindi-speaking ANM or health worker for medical accuracy | 🟡 Accessibility | Low |
 | 8 | **iOS support** — currently Expo/React Native targets Android; minor config change adds iOS | 🟢 Reach | Low |
 | 9 | **WhatsApp integration** — field staff already use WhatsApp; a bot that accepts a forwarded CSV and returns a verdict removes app-install barrier | 🔴 Adoption | High |
@@ -397,7 +407,7 @@ timeline
 **High Priority (Core Functionality)**
 | Issue | Title | Area | Effort | Assigned |
 |-------|-------|------|--------|----------|
-| [#39](https://github.com/Santhosh-zeta/ColdGuard/issues/39) | **Batch CSV import API** — `POST /batch-analyse` for processing 20+ vaccine lots in one request | REST API / Backend | 🟡 Medium | Open |
+| [#39](https://github.com/Santhosh-zeta/ColdGuard/issues/39) | **Batch CSV import API** — `POST /batch-analyse` for processing 20+ vaccine lots in one request | REST API / Backend | 🟡 Medium | Done |
 | [#38](https://github.com/Santhosh-zeta/ColdGuard/issues/38) | **API documentation** — README section, example requests/responses, deployment guide | Docs | 🟢 Easy | Open |
 | [#4](https://github.com/Santhosh-zeta/ColdGuard/issues/4) | **Real validation data** — Extract published Ea values for HepB, IPV, BCG from WHO literature | Research / Data | 🔴 Complex | @kanagarajSCK |
 

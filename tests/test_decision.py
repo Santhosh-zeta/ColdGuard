@@ -91,3 +91,16 @@ def test_ci_90_tuple_ordered(dpt):
     result = make_decision(summary, dpt, _empty_attribution())
     lo, hi = result.ci_90
     assert lo <= hi
+
+
+def test_decision_uses_exact_threshold_probability():
+    """A custom threshold must drive P(ok) rather than the 0.80/0.67 buckets."""
+    import numpy as np
+    from core.vaccine_params import VACCINE_DB
+    from dataclasses import replace
+    samples = np.full(1000, 0.85)
+    summary = compute_posterior_summary(samples, threshold=0.90)
+    assert summary["prob_above_threshold"] == 0.0
+    params = replace(VACCINE_DB["DPT"], min_potency_threshold=0.90)
+    out = make_decision(summary, params, [])
+    assert out.decision.name == "DISCARD"

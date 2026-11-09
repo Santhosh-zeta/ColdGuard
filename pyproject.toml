@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "coldguard"
@@ -37,15 +37,22 @@ dependencies = [
     "plotly>=5.15.0",
     "streamlit>=1.25.0",
     "reportlab>=4.0.0",
+    "pydantic>=2.0.0",
     "python-dateutil>=2.8.2",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4.0",
+    "httpx>=0.27.0",
     "ruff>=0.1.0",
     "black>=23.0.0",
     "jupyter>=1.0.0",
+]
+api = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "pydantic>=2.0.0",
 ]
 research = [
     "pymc>=5.0.0",
@@ -62,8 +69,11 @@ Repository = "https://github.com/Santhosh-zeta/ColdGuard"
 Documentation = "https://github.com/Santhosh-zeta/ColdGuard/tree/main/docs"
 Changelog = "https://github.com/Santhosh-zeta/ColdGuard/blob/main/CHANGELOG.md"
 
+[tool.setuptools]
+py-modules = ["coldguard_cli"]
+
 [tool.setuptools.packages.find]
-exclude = ["tests*", "notebooks*", "paper*"]
+include = ["core*", "api*", "web_app*"]
 
 [tool.ruff]
 line-length = 100
