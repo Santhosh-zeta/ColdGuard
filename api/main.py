@@ -143,6 +143,20 @@ class VaccineInfo(BaseModel):
     freeze_sensitive: bool = Field(..., json_schema_extra={"example": True})
 
 
+class VaccineDetail(BaseModel):
+    """Full kinetic parameters for one vaccine (GET /vaccines/{key})."""
+    key: str = Field(..., json_schema_extra={"example": "DPT"})
+    name: str
+    freeze_sensitive: bool
+    ea_mean_j_per_mol: float = Field(..., description="Mean activation energy Ea (J/mol)")
+    ea_std_j_per_mol: float = Field(..., description="Standard deviation of Ea (J/mol)")
+    a_per_hour: float = Field(..., description="Pre-exponential factor A (1/hour)")
+    a_log_std: float = Field(..., description="Standard deviation of ln(A)")
+    shelf_life_hours: float = Field(..., description="Nominal shelf life at the reference temperature (hours)")
+    ref_temp_c: float = Field(..., description="Reference storage temperature (°C)")
+    min_potency_threshold: float = Field(..., description="Minimum acceptable potency (fraction of initial)")
+
+
 class VaccinesResponse(BaseModel):
     """Response model for GET /vaccines endpoint."""
     vaccines: List[VaccineInfo]
@@ -305,6 +319,36 @@ def get_vaccines():
     )
 
 
+@app.get("/vaccines/{key}", response_model=VaccineDetail, tags=["metadata"])
+def get_vaccine(key: str):
+    """
+    Full kinetic parameters for one vaccine.
+
+    The key is matched case-insensitively (``dpt`` and ``DPT`` both work).
+    Returns 404 for an unknown key.
+    """
+    matches = {k.lower(): k for k in VACCINE_DB}
+    canonical = matches.get(key.lower())
+    if canonical is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unknown vaccine '{key}'. Available: {', '.join(sorted(VACCINE_DB))}",
+        )
+    p = VACCINE_DB[canonical]
+    return VaccineDetail(
+        key=canonical,
+        name=p.name,
+        freeze_sensitive=p.freeze_sensitive,
+        ea_mean_j_per_mol=p.Ea_mean,
+        ea_std_j_per_mol=p.Ea_std,
+        a_per_hour=p.A,
+        a_log_std=p.A_log_std,
+        shelf_life_hours=p.shelf_life_hours,
+        ref_temp_c=round(p.ref_temp_K - 273.15, 2),
+        min_potency_threshold=p.min_potency_threshold,
+    )
+
+
 @app.get("/health", response_model=HealthResponse, tags=["metadata"])
 def health():
     """Health check endpoint."""
@@ -322,6 +366,7 @@ async def root():
             "POST /analyse": "Analyze vaccine potency from temperature log",
             "POST /batch-analyse": "Analyse multiple CSV logs in one request",
             "GET /vaccines": "List all supported vaccines",
+            "GET /vaccines/{key}": "Full kinetic parameters for one vaccine",
             "GET /health": "Health check",
         }
     }

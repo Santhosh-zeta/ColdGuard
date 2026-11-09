@@ -285,6 +285,14 @@ Response:
 }
 ```
 
+## `GET /vaccines/{key}`
+
+Returns the full kinetic parameters for one vaccine: `ea_mean_j_per_mol`, `ea_std_j_per_mol`, `a_per_hour`, `a_log_std`, `shelf_life_hours`, `ref_temp_c`, `min_potency_threshold` and `freeze_sensitive`. The key is matched case-insensitively (`dpt` and `DPT` both work). An unknown key returns `404` with the list of valid keys.
+
+```bash
+curl http://localhost:8000/vaccines/DPT
+```
+
 ## `POST /export/dhis2`
 
 Runs an analysis (same body as `POST /analyse`) plus `org_unit` (DHIS2 facility UID) and optional `period` (`YYYYMMDD`, default today UTC). Returns a DHIS2 `dataValues` payload with the data elements `CG_DECISION`, `CG_POTENCY_MEAN`, `CG_CI90_LOWER`, `CG_CI90_UPPER`, `CG_VACCINE_TYPE` and `CG_AUDIT_HASH`, ready to POST to DHIS2's `/api/dataValueSets`. The same conversion is available in Python as `core.export.to_dhis2_payload(result, org_unit, period)`. You must create matching data elements in your DHIS2 instance.

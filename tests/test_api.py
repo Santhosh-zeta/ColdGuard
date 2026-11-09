@@ -236,3 +236,43 @@ def test_export_dhis2_non_finite_reading(client):
     response = client.post("/export/dhis2", content=json.dumps(body), headers=headers)
     assert response.status_code == 422
     assert "non-finite values at index 1" in response.json()["detail"]
+
+
+# ---------------------------------------------------------------------------
+# GET /vaccines/{key}
+# ---------------------------------------------------------------------------
+
+def test_vaccine_detail_known_key(client):
+    r = client.get("/vaccines/DPT")
+    assert r.status_code == 200
+    d = r.json()
+    assert d["key"] == "DPT"
+    assert d["freeze_sensitive"] is True
+    assert d["ea_mean_j_per_mol"] == 83_000
+    assert d["min_potency_threshold"] == 0.80
+    assert d["ref_temp_c"] == 5.0
+    assert {"ea_std_j_per_mol", "a_per_hour", "a_log_std", "shelf_life_hours"} <= set(d)
+
+
+def test_vaccine_detail_case_insensitive(client):
+    assert client.get("/vaccines/dpt").json()["key"] == "DPT"
+    assert client.get("/vaccines/hepb").json()["key"] == "HepB"
+
+
+def test_vaccine_detail_not_freeze_sensitive(client):
+    assert client.get("/vaccines/OPV").json()["freeze_sensitive"] is False
+
+
+def test_vaccine_detail_unknown_key_is_404(client):
+    r = client.get("/vaccines/NOPE")
+    assert r.status_code == 404
+    assert "Unknown vaccine" in r.json()["detail"]
+    assert "DPT" in r.json()["detail"]
+
+
+def test_vaccine_detail_matches_every_database_entry(client):
+    from core.vaccine_params import VACCINE_DB
+    for key, params in VACCINE_DB.items():
+        d = client.get(f"/vaccines/{key}").json()
+        assert d["name"] == params.name
+        assert d["a_per_hour"] == params.A
