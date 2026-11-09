@@ -14,6 +14,7 @@ All notable changes to ColdGuard are documented here. Format follows [Keep a Cha
 - `CITATION.cff`, `.editorconfig`, translation issue template, REST API docs
 
 ### Fixed
+- Readings that are NaN or infinite are rejected with a clear error (HTTP 422 on both `/analyse` and `/export/dhis2`) instead of reporting a NaN potency
 - Out-of-order or duplicate timestamps are now rejected (`ValueError` / HTTP 422) instead of producing negative degradation
 - MKT is now time-weighted when timestamps are supplied
 - Freeze-event detection and freeze-damage accounting now share one threshold (0 °C, `FREEZE_THRESHOLD_C`)

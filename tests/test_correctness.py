@@ -43,6 +43,28 @@ def test_api_returns_422_for_unsorted_timestamps():
     assert r.status_code == 422
 
 
+# --- non-finite readings ---------------------------------------------------
+
+@pytest.mark.parametrize("bad_index", [1, 3])
+def test_run_analysis_rejects_nan_temperatures(bad_index):
+    temps = np.full(5, 5.0)
+    temps[bad_index] = np.nan
+    with pytest.raises(ValueError, match=rf"non-finite values at index {bad_index} in temperatures_C"):
+        run_analysis("DPT", np.arange(5) * 3600.0, temps, n_mc_samples=100)
+
+
+def test_run_analysis_rejects_infinite_temperatures():
+    with pytest.raises(ValueError, match=r"non-finite values at index 2 in temperatures_C"):
+        run_analysis("DPT", np.arange(4) * 3600.0, np.array([5.0, 5.0, np.inf, 5.0]),
+                     n_mc_samples=100)
+
+
+def test_run_analysis_rejects_non_finite_timestamps():
+    with pytest.raises(ValueError, match=r"non-finite values at index 2 in timestamps"):
+        run_analysis("DPT", np.array([0.0, 3600.0, np.nan, 10800.0]),
+                     np.full(4, 5.0), n_mc_samples=100)
+
+
 # --- time-weighted MKT -----------------------------------------------------
 
 def test_mkt_is_time_weighted():

@@ -101,6 +101,28 @@ def test_analyse_temp_out_of_range(client):
     assert response.status_code == 422
 
 
+def test_analyse_non_finite_readings(client):
+    """Test POST /analyse rejects NaN/inf readings with 422."""
+    import json
+
+    headers = {"content-type": "application/json"}
+    payload = {
+        "vaccine": "DPT",
+        "timestamps": [1694592000, 1694595600, 1694599200],
+        "temperatures_c": [5.2, float("nan"), 5.0],
+    }
+    # json.dumps keeps the bare NaN token, which is what a data logger emits.
+    response = client.post("/analyse", content=json.dumps(payload), headers=headers)
+    assert response.status_code == 422
+    assert "non-finite values at index 1" in response.json()["detail"]
+
+    payload["temperatures_c"] = [5.2, 5.0, 5.0]
+    payload["timestamps"] = [1694592000, float("nan"), 1694599200]
+    response = client.post("/analyse", content=json.dumps(payload), headers=headers)
+    assert response.status_code == 422
+    assert "non-finite values at index 1" in response.json()["detail"]
+
+
 def test_analyse_mismatched_lengths(client):
     """Test POST /analyse with mismatched timestamps/temperatures fails."""
     payload = {
@@ -201,3 +223,16 @@ def test_export_dhis2_endpoint(client):
     assert len(r.json()["dataValues"]) == 6
     body["period"] = "bad"
     assert client.post("/export/dhis2", json=body).status_code == 422
+
+
+def test_export_dhis2_non_finite_reading(client):
+    """POST /export/dhis2 returns the same 422 as /analyse for bad readings."""
+    import json
+
+    headers = {"content-type": "application/json"}
+    body = {"vaccine": "DPT", "timestamps": [1694592000, 1694595600],
+            "temperatures_c": [5.0, float("nan")], "n_mc_samples": 100,
+            "org_unit": "FAC123"}
+    response = client.post("/export/dhis2", content=json.dumps(body), headers=headers)
+    assert response.status_code == 422
+    assert "non-finite values at index 1" in response.json()["detail"]

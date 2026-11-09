@@ -243,7 +243,8 @@ def run_analysis(
     ------
     ValueError
         If the vaccine is unknown, fewer than 2 readings are given, lengths
-        differ, or timestamps are not strictly increasing.
+        differ, readings contain NaN/inf, or timestamps are not strictly
+        increasing.
 
     Returns
     -------
@@ -274,6 +275,13 @@ def run_analysis(
         raise ValueError("timestamps and temperatures_C must have the same length")
     if len(ts) < 2:
         raise ValueError("At least 2 temperature readings are required")
+    for name, values in (("timestamps", ts), ("temperatures_C", tc)):
+        non_finite = np.flatnonzero(~np.isfinite(values))
+        if non_finite.size:
+            raise ValueError(
+                f"Temperature log contains non-finite values at index "
+                f"{int(non_finite[0])} in {name}"
+            )
     if np.any(np.diff(ts) <= 0):
         raise ValueError(
             "Timestamps must be strictly increasing (found out-of-order or duplicate timestamps)"
