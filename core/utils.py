@@ -4,8 +4,9 @@ I/O utilities and the top-level pipeline runner for ColdGuard.
 
 from __future__ import annotations
 
+import io
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import IO, Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -27,10 +28,54 @@ from .vaccine_params import FREEZE_THRESHOLD_C, VACCINE_DB
 # Parsing
 # ---------------------------------------------------------------------------
 
-def parse_csv_log(filepath: Union[str, Path]) -> Tuple[np.ndarray, np.ndarray]:
-    """Parse a temperature log CSV file.
+_CANDIDATE_DELIMITERS = (",", ";", "\t", "|")
 
-    Expected columns: ``timestamp`` (ISO-8601 or Unix), ``temperature_celsius``.
+
+def _read_text(source: Union[str, Path, IO]) -> Tuple[str, str]:
+    """Return ``(text, label)`` for a path or an open file-like object.
+
+    Decodes UTF-8 (a leading BOM is dropped); falls back to cp1252, which
+    spreadsheet exports from Windows tools often use.
+    """
+    if hasattr(source, "read"):
+        raw = source.read()
+        label = "<input>"
+    else:
+        raw = Path(source).read_bytes()
+        label = str(source)
+    if isinstance(raw, bytes):
+        try:
+            raw = raw.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            raw = raw.decode("cp1252", errors="replace")
+    elif raw.startswith("\ufeff"):
+        raw = raw[1:]
+    return raw, label
+
+
+def _detect_delimiter(text: str) -> str:
+    """Pick the delimiter from the header line (names never contain decimals).
+
+    Using the header avoids the classic trap of a ``;``-separated file with
+    decimal commas, where commas also occur in every data row.
+    """
+    header = next((ln for ln in text.splitlines() if ln.strip()), "")
+    counts = {d: header.count(d) for d in _CANDIDATE_DELIMITERS}
+    best = max(_CANDIDATE_DELIMITERS, key=lambda d: counts[d])
+    return best if counts[best] > 0 else ","
+
+
+def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarray]:
+    """Parse a temperature log CSV (a path or an open text/binary file object).
+
+    Expected columns: ``timestamp`` (ISO-8601 or Unix) and a temperature column
+    (``temperature_celsius``, or any column name containing ``temp``).
+
+    Handles the common export variants automatically:
+
+    - delimiter: comma, semicolon, tab or pipe (detected from the header line)
+    - decimal separator: dot or comma (``5,2``)
+    - UTF-8 byte-order mark, and Windows (cp1252) encoding
 
     Returns
     -------
@@ -38,23 +83,35 @@ def parse_csv_log(filepath: Union[str, Path]) -> Tuple[np.ndarray, np.ndarray]:
         Unix timestamps in seconds (float64).
     temperatures_C : np.ndarray
         Temperature readings in °C (float64).
+
+    Raises
+    ------
+    ValueError
+        If the file cannot be parsed. Messages name the columns that were found
+        or the offending row, so the user can fix the file.
     """
-    df = pd.read_csv(filepath)
+    text, label = _read_text(filepath)
+    delimiter = _detect_delimiter(text)
+    try:
+        df = pd.read_csv(io.StringIO(text), sep=delimiter, skipinitialspace=True)
+    except (pd.errors.ParserError, pd.errors.EmptyDataError) as exc:
+        raise ValueError(f"Failed to parse CSV file {label}: {exc}") from exc
 
     # Normalise column names
     col_map = {}
     for col in df.columns:
-        low = col.lower().replace(" ", "_").replace("-", "_")
+        low = str(col).strip().lower().replace(" ", "_").replace("-", "_")
         if low in ("timestamp", "ts", "time", "datetime"):
             col_map[col] = "timestamp"
         elif "temp" in low or low in ("t_c", "tc"):
             col_map[col] = "temperature_celsius"
     df = df.rename(columns=col_map)
 
+    found = [str(c) for c in df.columns]
     if "timestamp" not in df.columns:
-        raise ValueError(f"Cannot find timestamp column in {filepath}")
+        raise ValueError(f"Cannot find timestamp column in {label}. Found columns: {found}")
     if "temperature_celsius" not in df.columns:
-        raise ValueError(f"Cannot find temperature column in {filepath}")
+        raise ValueError(f"Cannot find temperature column in {label}. Found columns: {found}")
 
     # Convert timestamps
     ts_raw = df["timestamp"]
@@ -65,7 +122,22 @@ def parse_csv_log(filepath: Union[str, Path]) -> Tuple[np.ndarray, np.ndarray]:
             [dtparser.parse(str(t)).timestamp() for t in ts_raw], dtype=float
         )
 
-    temperatures_C = df["temperature_celsius"].values.astype(float)
+    # Temperatures: numbers as-is; text columns may use a decimal comma ("5,2").
+    temp_raw = df["temperature_celsius"]
+    if pd.api.types.is_numeric_dtype(temp_raw):
+        temperatures_C = temp_raw.values.astype(float)
+    else:
+        cleaned = temp_raw.astype(str).str.strip().str.replace(",", ".", regex=False)
+        cleaned = cleaned.where(temp_raw.notna() & (cleaned != ""), other=None)
+        numeric = pd.to_numeric(cleaned, errors="coerce")
+        bad = numeric.isna() & cleaned.notna()
+        if bad.any():
+            row = int(np.flatnonzero(bad.values)[0])
+            raise ValueError(
+                f"Temperature value {temp_raw.iloc[row]!r} in row {row + 1} of {label} "
+                "is not a number"
+            )
+        temperatures_C = numeric.values.astype(float)
     return timestamps, temperatures_C
 
 
