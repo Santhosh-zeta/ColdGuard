@@ -278,6 +278,8 @@ def export_dhis2(request: DHIS2ExportRequest):
             seed=request.seed,
         )
         return to_dhis2_payload(result, request.org_unit, request.period)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=f"Invalid export request: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Export failed: {str(e)}")
 

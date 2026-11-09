@@ -223,3 +223,16 @@ def test_export_dhis2_endpoint(client):
     assert len(r.json()["dataValues"]) == 6
     body["period"] = "bad"
     assert client.post("/export/dhis2", json=body).status_code == 422
+
+
+def test_export_dhis2_non_finite_reading(client):
+    """POST /export/dhis2 returns the same 422 as /analyse for bad readings."""
+    import json
+
+    headers = {"content-type": "application/json"}
+    body = {"vaccine": "DPT", "timestamps": [1694592000, 1694595600],
+            "temperatures_c": [5.0, float("nan")], "n_mc_samples": 100,
+            "org_unit": "FAC123"}
+    response = client.post("/export/dhis2", content=json.dumps(body), headers=headers)
+    assert response.status_code == 422
+    assert "non-finite values at index 1" in response.json()["detail"]
