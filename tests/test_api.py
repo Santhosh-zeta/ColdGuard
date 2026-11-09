@@ -236,3 +236,13 @@ def test_export_dhis2_non_finite_reading(client):
     response = client.post("/export/dhis2", content=json.dumps(body), headers=headers)
     assert response.status_code == 422
     assert "non-finite values at index 1" in response.json()["detail"]
+
+
+def test_batch_accepts_semicolon_decimal_comma_csv(client):
+    """In-memory CSV text in a European locale must work through /batch-analyse."""
+    csv = "timestamp;temperature_celsius\n" + "\n".join(
+        f"{1694592000 + i * 3600};{4 + (i % 3)},5" for i in range(24))
+    r = client.post("/batch-analyse", json={"batch": [{"vaccine": "DPT", "csv_data": csv}],
+                                            "n_mc_samples": 100})
+    assert r.status_code == 200
+    assert r.json()["results"][0]["status"] == "ok"
