@@ -158,6 +158,12 @@ PYTHONPATH=. python -m pytest tests/ -v
 
 ---
 
+## Integrations
+
+- **DHIS2** — `POST /export/dhis2` (or `core.export.to_dhis2_payload`) emits a `dataValues` payload for national health-information dashboards. See [docs/API.md](docs/API.md).
+- **REST batch audits** — `POST /batch-analyse` analyses many CSV logs in one call.
+- **Docker** — `docker compose up api` serves the REST API on port 8000.
+
 ## Supported Vaccines — India UIP
 
 ```mermaid
