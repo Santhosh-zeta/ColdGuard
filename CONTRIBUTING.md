@@ -72,8 +72,8 @@ New to the project? Start with the issues labelled
 git clone https://github.com/Santhosh-zeta/ColdGuard.git
 cd ColdGuard
 
-# Python engine + web app
-pip install numpy scipy pandas plotly streamlit pytest
+# Python engine, web app, API, and test dependencies
+pip install -e ".[web,api,dev]"
 
 # Run tests to verify setup
 PYTHONPATH=. python -m pytest tests/ -v
