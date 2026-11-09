@@ -31,12 +31,24 @@ updates:
   - package-ecosystem: "npm"
     directory: "/mobile_app"
     open-pull-requests-limit: 5
+    # Packages managed by the Expo SDK are upgraded together with
+    # `npx expo upgrade` (they must stay at the versions the SDK pins, e.g.
+    # `react` must match React Native's renderer), so Dependabot must not
+    # propose them one by one.
+    ignore:
+      - dependency-name: "expo"
+      - dependency-name: "expo-*"
+      - dependency-name: "@expo/*"
+      - dependency-name: "react"
+      - dependency-name: "react-native"
+      - dependency-name: "react-native-*"
+      - dependency-name: "@react-native/*"
+      - dependency-name: "@react-native-picker/picker"
+      - dependency-name: "jest-expo"
+      - dependency-name: "babel-preset-expo"
     groups:
-      mobile-framework:
+      react-navigation:
         patterns:
-          - "expo*"
-          - "@expo/*"
-          - "react-native*"
           - "@react-navigation/*"
       development-tools:
         dependency-type: "development"
