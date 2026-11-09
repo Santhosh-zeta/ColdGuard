@@ -285,6 +285,10 @@ Response:
 }
 ```
 
+## `POST /export/dhis2`
+
+Runs an analysis (same body as `POST /analyse`) plus `org_unit` (DHIS2 facility UID) and optional `period` (`YYYYMMDD`, default today UTC). Returns a DHIS2 `dataValues` payload with the data elements `CG_DECISION`, `CG_POTENCY_MEAN`, `CG_CI90_LOWER`, `CG_CI90_UPPER`, `CG_VACCINE_TYPE` and `CG_AUDIT_HASH`, ready to POST to DHIS2's `/api/dataValueSets`. The same conversion is available in Python as `core.export.to_dhis2_payload(result, org_unit, period)`. You must create matching data elements in your DHIS2 instance.
+
 ---
 
 # Python API (`core/`)

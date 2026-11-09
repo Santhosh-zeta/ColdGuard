@@ -13,7 +13,7 @@ web_app/        Streamlit web application
 mobile_app/     React Native / Expo mobile app (Android, offline-first)
 simulation/     Synthetic India cold chain scenario generator
 validation/     Literature validation and calibration analysis
-tests/          pytest test suite (88 tests, all must pass)
+tests/          pytest test suite (94 tests, all must pass)
 notebooks/      Jupyter analysis notebooks (01–05)
 data/           raw/ validation/ parameters/ synthetic/
 paper/          LaTeX research paper skeleton

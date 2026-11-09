@@ -22,6 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 # Allow importing from repo root
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from core.export import to_dhis2_payload
 from core.utils import parse_csv_log, run_analysis
 from core.vaccine_params import VACCINE_DB
 
@@ -246,6 +247,29 @@ def batch_analyse(request: BatchRequest):
         generated_at=datetime.now(timezone.utc).isoformat(),
         audit_id=f"batch-{uuid.uuid4().hex[:12]}",
     )
+
+
+class DHIS2ExportRequest(AnalysisRequest):
+    """Analysis request plus DHIS2 reporting context."""
+    org_unit: str = Field(..., min_length=1, description="DHIS2 organisation unit UID")
+    period: Optional[str] = Field(None, pattern=r"^\d{8}$", description="YYYYMMDD; defaults to today (UTC)")
+
+
+@app.post("/export/dhis2", tags=["integrations"])
+def export_dhis2(request: DHIS2ExportRequest):
+    """Run an analysis and return a DHIS2-compatible ``dataValues`` payload."""
+    try:
+        result = run_analysis(
+            vaccine_type=request.vaccine,
+            timestamps=request.timestamps,
+            temperatures_C=request.temperatures_c,
+            initial_potency=request.initial_potency,
+            n_mc_samples=request.n_mc_samples,
+            logger_accuracy_C=request.logger_accuracy_c,
+        )
+        return to_dhis2_payload(result, request.org_unit, request.period)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Export failed: {str(e)}")
 
 
 @app.get("/vaccines", response_model=VaccinesResponse, tags=["metadata"])

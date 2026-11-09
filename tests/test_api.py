@@ -190,3 +190,14 @@ def test_batch_large(client):
 
 def test_batch_empty_rejected(client):
     assert client.post("/batch-analyse", json={"batch": []}).status_code == 422
+
+
+def test_export_dhis2_endpoint(client):
+    body = {"vaccine": "DPT", "timestamps": [1694592000, 1694595600, 1694599200],
+            "temperatures_c": [5.0, 5.5, 5.0], "n_mc_samples": 100,
+            "org_unit": "FAC123", "period": "20260115"}
+    r = client.post("/export/dhis2", json=body)
+    assert r.status_code == 200
+    assert len(r.json()["dataValues"]) == 6
+    body["period"] = "bad"
+    assert client.post("/export/dhis2", json=body).status_code == 422

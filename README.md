@@ -153,7 +153,7 @@ print(dec.natural_language_explanation)
 
 ```bash
 PYTHONPATH=. python -m pytest tests/ -v
-# 88 passed ✅
+# 94 passed ✅
 ```
 
 ---
@@ -283,7 +283,7 @@ ColdGuard/
 │   ├── API.md                      REST API reference + Python core API
 │   └── USER_GUIDE.md              Step-by-step guide for field staff
 │
-├── 🧪 tests/                       88 tests · all passing
+├── 🧪 tests/                       94 tests · all passing
 │   ├── test_arrhenius.py           9 tests
 │   ├── test_bayesian.py            7 tests
 │   ├── test_decision.py            9 tests
@@ -335,7 +335,7 @@ timeline
     section v1.0 — Current
         Scientific engine        : Arrhenius + Monte Carlo
         Web + Mobile apps        : Streamlit + React Native
-        88 passing tests         : Full test suite
+        94 passing tests         : Full test suite
         CLI + CI pipeline        : GitHub Actions
         REST API                 : FastAPI wrapper (/analyse, /vaccines, /health)
         12 vaccines              : DPT OPV MMR BCG HepB IPV Rotavirus PCV YF JE Typhoid MenA
