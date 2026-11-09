@@ -142,6 +142,23 @@ class VaccineInfo(BaseModel):
     name: str = Field(..., json_schema_extra={"example": "DPT (Diphtheria-Pertussis-Tetanus)"})
     freeze_sensitive: bool = Field(..., json_schema_extra={"example": True})
 
+class VaccineDetail(BaseModel):
+    """
+    Full parameters for vaccine
+    
+    Returns 404 for unknown key
+    """
+
+    key: str = Field(..., json_schema_extra={"example": "DPT"})
+    name: str = Field(..., json_schema_extra={"example": "DPT (Diphtheria-Pertussis-Tetanus)"})
+    Ea_mean: float = Field(..., description="Mean activation energy (J/mol)")
+    Ea_std: float = Field(..., description="Standard deviation of Ea (J/mol)")
+    A: float = Field(..., description="Pre-exponential factor A (1/hr)")
+    A_log_std: float = Field(..., description="Standard deviation of log(A)")
+    shelf_life_hours: float = Field(..., description="hours at ref_temp_K to min_potency_threshold")
+    ref_temp_K: float = Field(..., description="Reference storage temperature (K)")
+    min_potency_threshold: float = Field(..., description="Acceptable fraction of initial potency that")
+    freeze_sensitive: bool = Field(..., description="True if freezing damages the vaccine")
 
 class VaccinesResponse(BaseModel):
     """Response model for GET /vaccines endpoint."""
@@ -300,6 +317,37 @@ def get_vaccines():
         count=len(vaccines),
     )
 
+@app.get("/vaccines/{key}", response_model=VaccineDetail, tags=["metadata"])
+def get_vaccine(key: str):
+    """
+    Retrun full parameters and metadata for a specific vaccine.
+    """
+    normalize_key = next(
+        (existing_key for existing_key in VACCINE_DB
+         if existing_key.lower() == key.lower()),
+         None,
+    )
+    
+    params = VACCINE_DB.get(normalize_key) if normalize_key else None
+
+    if params is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Vaccine '{key}' not found",
+        )
+
+    return VaccineDetail(
+        key=normalize_key,
+        name=params.name,
+        Ea_mean=params.Ea_mean,
+        Ea_std=params.Ea_std,
+        A=params.A,
+        A_log_std=params.A_log_std,
+        shelf_life_hours=params.shelf_life_hours,
+        min_potency_threshold=params.min_potency_threshold,
+        ref_temp_K=params.ref_temp_K,
+        freeze_sensitive=params.freeze_sensitive,
+    )
 
 @app.get("/health", response_model=HealthResponse, tags=["metadata"])
 def health():
@@ -318,6 +366,7 @@ async def root():
             "POST /analyse": "Analyze vaccine potency from temperature log",
             "POST /batch-analyse": "Analyse multiple CSV logs in one request",
             "GET /vaccines": "List all supported vaccines",
+            "GET /vaccines/{key}": "Get full kinetic parameters for a specific vaccine",
             "GET /health": "Health check",
         }
     }

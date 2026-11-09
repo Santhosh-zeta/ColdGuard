@@ -51,6 +51,7 @@ curl http://localhost:8000/health
 | `GET` | `/` | Service name, version and a list of endpoints |
 | `GET` | `/health` | Liveness check |
 | `GET` | `/vaccines` | List the supported vaccines and whether each is freeze-sensitive |
+| `GET` | `/vaccines/{key}` | Get full kinetic parameters for specific vaccine |
 | `POST` | `/analyse` | Analyse a temperature log and return potency and a decision |
 | `POST` | `/batch-analyse` | Analyse many CSV logs in one request; see [`POST /batch-analyse`](#post-batch-analyse) |
 
@@ -109,6 +110,70 @@ curl http://localhost:8000/vaccines
 The list is abbreviated above. The full response contains all 12 entries.
 
 ---
+
+### `GET /vaccines/{key}`
+
+Returns the complete kinetic parameters for a specific vaccine.
+
+Vaccine identifiers are case-insensitive. For example, `DPT`, `dpt` and `DPt` resolve to the same vaccine. The response returns the canonical vaccine key.
+
+**Path Parameters**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `key` | string | yes | Vaccine identifier, e.g. `DPT`, `OPV`, `HepB` |
+
+**Response `200`**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `key` | string | Canonical vaccine identifier |
+| `name` | string | Full vaccine name |
+| `Ea_mean` | number | Mean activation energy [J/mol] |
+| `Ea_std` | number | Standard deviation of activation energy [J/mol] |
+| `A` | number | Arrhenius pre-exponential factor [1/hr] |
+| `A_log_std` | number | Standard deviation of log(A) |
+| `shelf_life_hours` | number | Nominal shelf life [hours] |
+| `ref_temp_K` | number | Reference temperature [K] |
+| `min_potency_threshold` | number | Minimum acceptable potency fraction |
+| `freeze_sensitive` | boolean | Whether freezing damages this vaccine |
+
+**Example Request**
+
+```bash
+curl http://localhost:8000/vaccines/HepB
+```
+
+**Example Response**
+
+```json
+{
+    "key":"HepB",
+    "name":"Hepatitis B",
+    "Ea_mean":70000.0,
+    "Ea_std":4500.0,
+    "A":180700000.0,
+    "A_log_std":0.16,
+    "shelf_life_hours":17280.0,
+    "ref_temp_K":278.15,
+    "min_potency_threshold":0.8,
+    "freeze_sensitive":true
+}
+```
+
+**Example: Case-insensitive identifier**
+
+```bash
+curl http://localhost:8000/vaccines/hepb
+```
+
+This returns the same vaccine details as `/vaccines/HepB`, with `"key": "HepB"` in the response.
+
+**Errors**
+
+| Status | When | Body |
+|--------|------|------|
+| `404 Not Found` | The requested vaccine identifier does not exist | `{"detail": "Vaccine 'XYZ' not found"}` |
 
 ### `POST /analyse`
 
