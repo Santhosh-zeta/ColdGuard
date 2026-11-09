@@ -31,6 +31,11 @@ def parse_csv_log(filepath: Union[str, Path]) -> Tuple[np.ndarray, np.ndarray]:
     """Parse a temperature log CSV file.
 
     Expected columns: ``timestamp`` (ISO-8601 or Unix), ``temperature_celsius``.
+    
+    Auto-detects:
+    - Delimiter (comma, semicolon, etc.)
+    - Decimal separator (dot or comma)
+    - UTF-8 BOM
 
     Returns
     -------
@@ -39,7 +44,11 @@ def parse_csv_log(filepath: Union[str, Path]) -> Tuple[np.ndarray, np.ndarray]:
     temperatures_C : np.ndarray
         Temperature readings in °C (float64).
     """
-    df = pd.read_csv(filepath)
+    # Try reading with auto-detected delimiter and UTF-8-sig for BOM support
+    try:
+        df = pd.read_csv(filepath, sep=None, engine="python", encoding="utf-8-sig")
+    except pd.errors.ParserError as e:
+        raise ValueError(f"Failed to parse CSV file {filepath}: {e}")
 
     # Normalise column names
     col_map = {}
@@ -52,9 +61,15 @@ def parse_csv_log(filepath: Union[str, Path]) -> Tuple[np.ndarray, np.ndarray]:
     df = df.rename(columns=col_map)
 
     if "timestamp" not in df.columns:
-        raise ValueError(f"Cannot find timestamp column in {filepath}")
+        raise ValueError(
+            f"Cannot find timestamp column in {filepath}. "
+            f"Found columns: {list(df.columns)}"
+        )
     if "temperature_celsius" not in df.columns:
-        raise ValueError(f"Cannot find temperature column in {filepath}")
+        raise ValueError(
+            f"Cannot find temperature column in {filepath}. "
+            f"Found columns: {list(df.columns)}"
+        )
 
     # Convert timestamps
     ts_raw = df["timestamp"]
@@ -65,7 +80,26 @@ def parse_csv_log(filepath: Union[str, Path]) -> Tuple[np.ndarray, np.ndarray]:
             [dtparser.parse(str(t)).timestamp() for t in ts_raw], dtype=float
         )
 
-    temperatures_C = df["temperature_celsius"].values.astype(float)
+    # Handle temperature column - try numeric first, then decimal comma
+    temp_raw = df["temperature_celsius"]
+    if pd.api.types.is_numeric_dtype(temp_raw):
+        temperatures_C = temp_raw.values.astype(float)
+    else:
+        # Re-read with decimal="," for European format
+        df_eu = pd.read_csv(
+            filepath, sep=None, engine="python", encoding="utf-8-sig", decimal=","
+        )
+        # Apply same column name normalization
+        col_map_eu = {}
+        for col in df_eu.columns:
+            low = col.lower().replace(" ", "_").replace("-", "_")
+            if low in ("timestamp", "ts", "time", "datetime"):
+                col_map_eu[col] = "timestamp"
+            elif "temp" in low or low in ("t_c", "tc"):
+                col_map_eu[col] = "temperature_celsius"
+        df_eu = df_eu.rename(columns=col_map_eu)
+        temperatures_C = df_eu["temperature_celsius"].values.astype(float)
+    
     return timestamps, temperatures_C
 
 
