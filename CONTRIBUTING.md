@@ -41,6 +41,7 @@ We welcome contributions from:
 | 🧬 New vaccine parameters | [Open an issue](https://github.com/Santhosh-zeta/ColdGuard/issues/new?template=vaccine_addition.md) |
 | 📖 Docs improvements | Edit any file in `docs/` and open a PR |
 | 🌐 Translations | Edit `mobile_app/src/i18n/` — Hindi, Tamil, Telugu, Kannada, Bengali, etc. |
+| Logger export samples | Use the [logger format form](https://github.com/Santhosh-zeta/ColdGuard/issues/new?template=logger_format.yml) to share an anonymised sample for the [logger adapter work](https://github.com/Santhosh-zeta/ColdGuard/issues/69) |
 | 📊 Validation data | Add published stability data to `data/validation/` |
 | 🔬 Scientific review | Review Arrhenius parameters in `core/vaccine_params.py` against primary literature |
 | 💻 Code | See open issues labelled `good first issue` |
