@@ -12,7 +12,7 @@ from typing import List, Dict, Any
 
 import numpy as np
 
-from .vaccine_params import R_GAS, VaccineParams
+from .vaccine_params import FREEZE_THRESHOLD_C, R_GAS, VaccineParams
 
 
 # ---------------------------------------------------------------------------
@@ -150,10 +150,19 @@ def compute_segment_attribution(
 # WHO Mean Kinetic Temperature
 # ---------------------------------------------------------------------------
 
-def compute_mkt(temperatures_C: np.ndarray, Ea: float = 83_000) -> float:
+def compute_mkt(
+    temperatures_C: np.ndarray,
+    Ea: float = 83_000,
+    timestamps: np.ndarray | None = None,
+) -> float:
     """Compute WHO Mean Kinetic Temperature (MKT) per ISO 11135.
 
-    MKT = -Ea/R / ln( mean(exp(-Ea/(R*Ti))) )
+    MKT = -Ea/R / ln( weighted_mean(exp(-Ea/(R*Ti))) )
+
+    When *timestamps* are given, each reading is weighted by the time it
+    represents (trapezoidal weights), so irregular logging intervals do not
+    bias the result toward densely sampled periods. Without timestamps the
+    readings are assumed to be evenly spaced and averaged equally.
 
     Parameters
     ----------
@@ -161,6 +170,8 @@ def compute_mkt(temperatures_C: np.ndarray, Ea: float = 83_000) -> float:
         Temperature readings in °C.
     Ea : float
         Activation energy in J/mol (default 83 000, typical for DPT).
+    timestamps : array-like, optional
+        Unix timestamps in seconds (same length, strictly increasing).
 
     Returns
     -------
@@ -170,7 +181,15 @@ def compute_mkt(temperatures_C: np.ndarray, Ea: float = 83_000) -> float:
     tc = np.asarray(temperatures_C, dtype=float)
     T_K = tc + 273.15
     exponents = np.exp(-Ea / (R_GAS * T_K))
-    mean_exp = float(np.mean(exponents))
+    if timestamps is not None and len(tc) >= 2:
+        ts = np.asarray(timestamps, dtype=float)
+        dt = np.diff(ts)
+        total = float(np.sum(dt))
+        if total <= 0:
+            raise ValueError("timestamps must be strictly increasing")
+        mean_exp = float(np.sum(0.5 * (exponents[:-1] + exponents[1:]) * dt) / total)
+    else:
+        mean_exp = float(np.mean(exponents))
     if mean_exp <= 0:
         raise ValueError("mean_exp is non-positive; check temperature inputs")
     mkt_K = -Ea / (R_GAS * math.log(mean_exp))
@@ -193,7 +212,7 @@ def mkt_potency_estimate(
     """
     tc = np.asarray(temperatures_C, dtype=float)
     ts = np.asarray(timestamps, dtype=float)
-    mkt_C = compute_mkt(tc, Ea=vaccine_params.Ea_mean)
+    mkt_C = compute_mkt(tc, Ea=vaccine_params.Ea_mean, timestamps=ts)
     duration_hours = (ts[-1] - ts[0]) / 3600.0
     k_mkt = arrhenius_k(mkt_C + 273.15, vaccine_params.Ea_mean, vaccine_params.A)
     D = k_mkt * duration_hours
@@ -218,7 +237,7 @@ def compute_freeze_damage_fraction(
     timestamps: np.ndarray,
     temperatures_C: np.ndarray,
     vaccine_params: VaccineParams,
-    freeze_threshold_C: float = 0.0,
+    freeze_threshold_C: float = FREEZE_THRESHOLD_C,
 ) -> float:
     """Compute the potency retention factor due to freeze exposure.
 
@@ -235,7 +254,7 @@ def compute_freeze_damage_fraction(
     vaccine_params : VaccineParams
         Must have ``freeze_sensitive`` attribute.
     freeze_threshold_C : float
-        Temperature below which freeze damage is accumulated. Default 0.0°C.
+        Temperature below which freeze damage is accumulated. Default ``FREEZE_THRESHOLD_C`` (0.0°C).
 
     Returns
     -------

@@ -77,7 +77,7 @@ pip install numpy scipy pandas plotly streamlit pytest
 
 # Run tests to verify setup
 PYTHONPATH=. python -m pytest tests/ -v
-# Expected: 94 passed
+# Expected: 107 passed
 ```
 
 ### Mobile app setup
@@ -107,7 +107,7 @@ core/               ← Scientific engine. Most impactful contributions live her
 ├── decision.py     ← USE/INVESTIGATE/DISCARD logic
 └── vaccine_params.py ← VaccineParams dataclass + VACCINE_DB
 
-tests/              ← pytest suite. Every PR must keep 94/94 green.
+tests/              ← pytest suite. Every PR must keep 107/107 green.
 data/raw/           ← Temperature log CSVs for testing and demo
 mobile_app/src/     ← React Native app + offline JS engine
 web_app/            ← Streamlit web application
@@ -150,7 +150,7 @@ All scientific changes must cite a primary source (WHO document, peer-reviewed p
 
 - Every new feature needs a test
 - Every bug fix needs a regression test
-- The test suite must stay at **94/94 passing** (or more if you add tests)
+- The test suite must stay at **107/107 passing** (or more if you add tests)
 - Run: `PYTHONPATH=. python -m pytest tests/ -v`
 
 ### Commit messages
@@ -178,7 +178,7 @@ data(validation): add HepB stability points from WHO/GPV/98.07
 
 ### PR checklist
 
-- [ ] Tests pass (`94+/94`)
+- [ ] Tests pass (`107+/107`)
 - [ ] New code has corresponding tests
 - [ ] Scientific changes cite a primary source
 - [ ] Mobile JS engine updated if Python core changed

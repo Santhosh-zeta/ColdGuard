@@ -10,6 +10,7 @@ Usage:
 import argparse
 import json
 import sys
+from enum import Enum
 from pathlib import Path
 
 # Allow running from repo root without installing the package
@@ -43,6 +44,8 @@ def main():
                         help="Monte Carlo sample count (default 5000; use 1000 for speed)")
     parser.add_argument("--logger-accuracy", type=float, default=0.5, metavar="DEG_C",
                         help="Logger uncertainty in °C (default 0.5)")
+    parser.add_argument("--seed", type=int, default=None, metavar="N",
+                        help="RNG seed for reproducible results")
     parser.add_argument("--output", "-o", metavar="FILE",
                         help="Write full JSON result to FILE instead of stdout summary")
     parser.add_argument("--json", action="store_true",
@@ -64,14 +67,19 @@ def main():
         print("Error: temperature log must have at least 2 readings.", file=sys.stderr)
         sys.exit(1)
 
-    result = run_analysis(
-        vaccine_type=args.vaccine,
-        timestamps=timestamps,
-        temperatures_C=temperatures,
-        initial_potency=args.initial_potency,
-        n_mc_samples=args.samples,
-        logger_accuracy_C=args.logger_accuracy,
-    )
+    try:
+        result = run_analysis(
+            vaccine_type=args.vaccine,
+            timestamps=timestamps,
+            temperatures_C=temperatures,
+            initial_potency=args.initial_potency,
+            n_mc_samples=args.samples,
+            logger_accuracy_C=args.logger_accuracy,
+            seed=args.seed,
+        )
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     dec_out = result["decision_output"]
 
@@ -85,10 +93,10 @@ def main():
                 return float(obj)
             if isinstance(obj, np.integer):
                 return int(obj)
+            if isinstance(obj, Enum):
+                return obj.value
             if hasattr(obj, "__dict__"):
                 return obj.__dict__
-            if hasattr(obj, "value"):  # Enum
-                return obj.value
             return str(obj)
 
         out_dict = {k: v for k, v in result.items() if k != "potency_samples"}
