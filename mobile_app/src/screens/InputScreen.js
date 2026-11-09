@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   TextInput, Alert, ActivityIndicator, Platform,
@@ -12,6 +12,7 @@ import {
   computePosteriorSummary,
   makeDecision
 } from '../engine/arrhenius';
+import { parseLoggerQr, readingsToRows, QrPayloadError } from '../engine/qrPayload';
 
 const VACCINES = Object.keys(VACCINE_DB);
 
@@ -28,43 +29,11 @@ export default function InputScreen({ navigation }) {
   const [loggerId, setLoggerId] = useState('');
   const [scannerVisible, setScannerVisible] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
+  const lastScanRef = useRef(0);
 
   const addRow = () => {
     setRows(r => [...r, { time: '', temp: '' }]);
   };
-
-  function parseLoggerId(rawValue) {
-    if (!rawValue) return null;
-
-    const raw = rawValue.trim();
-
-    // Try URL-encoded JSON
-    try {
-      const decoded = decodeURIComponent(raw);
-      const data = JSON.parse(decoded);
-
-      return (
-        data.loggerId ||
-        data.loggerID ||
-        data.logger_id ||
-        null
-      );
-    } catch {}
-
-    // Try URL query parameters
-    try {
-      const url = new URL(raw);
-
-      return (
-        url.searchParams.get('loggerId') ||
-        url.searchParams.get('loggerID') ||
-        url.searchParams.get('logger_id') ||
-        null
-      );
-    } catch {}
-
-    return null;
-  }
 
   const openScanner = async () => {
     if (!permission?.granted) {
@@ -83,17 +52,36 @@ export default function InputScreen({ navigation }) {
   };
 
   const handleBarcodeScanned = ({ data }) => {
-    const id = parseLoggerId(data);
+    // The camera fires continuously while a code is in view: ignore repeats
+    // for a moment so an invalid code shows one alert, not dozens.
+    const now = Date.now();
+    if (now - lastScanRef.current < 2000) return;
+    lastScanRef.current = now;
 
-    if (!id) {
-      Alert.alert(
-        'Invalid QR Code',
-        'This QR code does not contain a recognizable Berlinger logger ID.'
-      );
-      return;
+    let parsed;
+    try {
+      parsed = parseLoggerQr(data);
+    } catch (e) {
+      if (e instanceof QrPayloadError) {
+        Alert.alert(
+          e.code === 'unrecognised' || e.code === 'empty'
+            ? 'Unrecognised QR Code'
+            : 'Invalid logger data',
+          e.message
+        );
+        return;
+      }
+      throw e;
     }
 
-    setLoggerId(id);
+    if (parsed.loggerId) setLoggerId(parsed.loggerId);
+    if (parsed.readings) {
+      setRows(readingsToRows(parsed.readings));
+      Alert.alert(
+        'Logger imported',
+        `Imported ${parsed.readings.length} readings. Check the vaccine type, then tap Analyze.`
+      );
+    }
     setScannerVisible(false);
   };
 
