@@ -16,12 +16,24 @@
 [![Offline](https://img.shields.io/badge/Works-Offline-f59e0b.svg)]()
 [![Languages](https://img.shields.io/badge/Language-EN%20%7C%20हिन्दी%20%7C%20தமிழ்%20%7C%20বাংলা%20%7C%20తెలుగు%20%7C%20ಕನ್ನಡ-ef4444.svg)](mobile_app/src/i18n/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Good first issues](https://img.shields.io/github/issues/Santhosh-zeta/ColdGuard/good%20first%20issue?label=good%20first%20issues&color=7057ff)](https://github.com/Santhosh-zeta/ColdGuard/labels/good%20first%20issue)
+[![Contributors](https://img.shields.io/github/contributors/Santhosh-zeta/ColdGuard?color=0ea5e9)](https://github.com/Santhosh-zeta/ColdGuard/graphs/contributors)
 
 <br/>
 
-> **ColdGuard** is a science-grade, field-deployable decision support tool for ANMs, cold chain officers, and PHC staff. Given a temperature log, it tells you — with calibrated confidence — whether a vaccine is still safe to use.
+> **ColdGuard** is an open-source decision-support tool for ANMs, cold chain officers, and PHC staff. Given a temperature log, it estimates whether a vaccine is still potent and returns **USE / INVESTIGATE / DISCARD** together with the uncertainty.
+
+<img src="docs/images/demo.gif" alt="Demo: upload a temperature log, get a USE decision with potency, confidence interval and charts" width="720"/>
+
+<sub>Real screen recording of the web app analysing <code>data/raw/demo_dpt_power_outage.csv</code> (a 9-hour excursion to 14 °C).</sub>
 
 </div>
+
+> ### ⚠️ Project status: research prototype
+> ColdGuard is **not a certified medical device** and must not replace your programme's SOPs or a qualified cold-chain officer's judgement.
+> - Part of the validation data is **synthetic**; real published stability data is the biggest thing we are missing ([#4](https://github.com/Santhosh-zeta/ColdGuard/issues/4), [#20](https://github.com/Santhosh-zeta/ColdGuard/issues/20)).
+> - Known modelling limitations are tracked in the open, for example uncertainty that is too wide for some vaccines ([#142](https://github.com/Santhosh-zeta/ColdGuard/issues/142)).
+> - If you have a pharma, statistics or cold-chain background, **your review is as valuable as code.**
 
 ---
 
@@ -37,7 +49,7 @@ Current protocols respond with one of two equally bad choices:
 | **Use it anyway** | Risks administering under-potent doses. Children aren't protected. |
 | **VVM (Vaccine Vial Monitor)** | Binary indicator, conservatively calibrated. High false discard rate. No confidence interval. |
 
-**ColdGuard replaces guesswork with physics.**
+**ColdGuard replaces guesswork with a kinetics model — and an honest statement of how sure it is.**
 
 ---
 
@@ -80,7 +92,7 @@ Vaccine degradation follows **first-order Arrhenius kinetics**. For a discrete t
 
 $$P_{\text{remaining}} = \exp\!\left(-\sum_{i} \frac{k(T_i) + k(T_{i+1})}{2} \cdot \Delta t_i\right) \qquad k(T) = A \cdot e^{-E_a / RT}$$
 
-ColdGuard propagates uncertainty in **Eₐ**, **A**, and **sensor readings** through 5,000 Monte Carlo samples to produce a calibrated posterior, not just a point estimate.
+ColdGuard propagates uncertainty in **Eₐ**, **A**, and **sensor readings** through 5,000 Monte Carlo samples to produce a posterior distribution with credible intervals, not just a point estimate. (Calibration against real stability data is still in progress — see the status note above.)
 
 ---
 
@@ -119,6 +131,15 @@ graph TB
 ---
 
 ## Quick Start
+
+### Try it in 60 seconds (no extras needed)
+
+```bash
+git clone https://github.com/Santhosh-zeta/ColdGuard.git
+cd ColdGuard
+pip install -e .
+python coldguard_cli.py --input data/raw/demo_dpt_power_outage.csv --vaccine DPT --seed 42
+```
 
 > **Install options.** `pip install -e .` installs only the core engine (NumPy, SciPy, pandas, python-dateutil), which is all the CLI and the Python API need. Optional extras: `web` (Streamlit, Plotly, Matplotlib, ReportLab), `api` (FastAPI, Uvicorn, Pydantic), `dev` (pytest, ruff, Jupyter, …) and `research` (PyMC, ArviZ). Combine them, e.g. `pip install -e ".[web,api,dev]"`.
 
@@ -199,7 +220,7 @@ Full reference: [docs/API.md](docs/API.md).
 ```bash
 pip install -e ".[web,api,dev]"
 PYTHONPATH=. python -m pytest tests/ -v
-# 107 passed ✅
+# all tests pass ✅ (120+ tests)
 ```
 
 ---
@@ -279,7 +300,7 @@ graph TD
     style OUTREACH fill:#7c3aed,color:#fff
 ```
 
-ColdGuard was designed and tested against all three field-tier profiles (District, PHC, Outreach) with realistic excursion distributions modeled on published cold chain monitoring studies.
+ColdGuard was designed and tested against all three field-tier profiles (District, PHC, Outreach) with **synthetic** excursion profiles intended to resemble real-world cold chain behaviour.
 
 ---
 
@@ -322,7 +343,7 @@ ColdGuard/
 │   └── 05_paper_figures            All 6 publication-ready figures
 │
 ├── 📊 data/
-│   ├── raw/                        12 synthetic cold chain CSVs + demo scenario
+│   ├── raw/                        16 synthetic scenario CSVs + demo scenario
 │   ├── validation/                 Stability datasets (DPT, OPV, MMR)
 │   └── parameters/                 vaccine_arrhenius_db.json
 │
@@ -335,46 +356,35 @@ ColdGuard/
 │   ├── API.md                      REST API reference + Python core API
 │   └── USER_GUIDE.md              Step-by-step guide for field staff
 │
-├── 🧪 tests/                       107 tests · all passing
-│   ├── test_arrhenius.py           9 tests
-│   ├── test_bayesian.py            7 tests
-│   ├── test_decision.py            9 tests
-│   ├── test_scenarios.py           19 scenario-level integration tests
-│   ├── test_api.py                 10 tests
-│   ├── test_cli.py                 17 tests
-│   ├── test_i18n.py                12 tests
-│   └── test_pdf_report.py          1 test
+├── 🧪 tests/                       pytest suite (120+ tests): engine, decision, API, CLI, i18n, scenarios
 │
 ├── coldguard_cli.py                Command-line runner
-└── .github/workflows/test.yml      CI: runs all tests on every push
+└── .github/workflows/              CI: tests (py3.11/3.12 + mobile), lint, CodeQL, dependency review
 ```
 
 ---
 
 ## Example Output
 
+Real output of `python coldguard_cli.py -i data/raw/demo_dpt_power_outage.csv -v DPT --seed 42`:
+
 ```
 ColdGuard Analysis — DPT (Diphtheria-Pertussis-Tetanus)
-════════════════════════════════════════════════════════════
-
+============================================================
 ✅  USE  — Vaccine retains sufficient potency. Safe to administer.
 
   Potency estimate : 99.8%
   90% CI           : 99.2% – 100.0%
   Confidence       : 100%
 
-  ColdGuard estimates DPT potency at 99.8% (90% CI: 99.2–100.0%).
-  Minimum acceptable potency is 80%. Primary degradation source:
-  11 hours at 14.3°C, accounting for 87% of total heat stress.
-  It is safe to USE this vaccine.
+  ColdGuard estimates DPT (Diphtheria-Pertussis-Tetanus) potency at 99.8% (90% CI: 99.2–100.0%).
+  The minimum acceptable potency for this vaccine is 80%. The primary source of degradation was:
+  Mild elevated temperature (14.3°C for 1.0 h), accounting for 8.7% of total degradation.
+  Based on the temperature history, there is a high probability that this batch remains above
+  the minimum potency threshold. It is safe to USE this vaccine.
 
-  MKT: 11.26°C   Point estimate: 99.95%
-  Audit hash: e21be4c1e394f7f0…
-
-  Top degradation segments:
-    1.0 h at mean 14.3°C  →  8.7% of total loss
-    1.0 h at mean 14.3°C  →  8.7% of total loss
-    1.0 h at mean 14.3°C  →  8.7% of total loss
+  MKT: 11.55°C   Point estimate: 99.95%
+  Audit hash: 715084ffa39ce2f8…
 ```
 
 ---
@@ -387,7 +397,7 @@ timeline
     section v1.0 — Current
         Scientific engine        : Arrhenius + Monte Carlo
         Web + Mobile apps        : Streamlit + React Native
-        107 passing tests         : Full test suite
+        120+ passing tests         : Full test suite
         CLI + CI pipeline        : GitHub Actions
         REST API                 : FastAPI wrapper (/analyse, /vaccines, /health)
         12 vaccines              : DPT OPV MMR BCG HepB IPV Rotavirus PCV YF JE Typhoid MenA
@@ -417,7 +427,7 @@ timeline
 | 1 | **Source real validation data** from WHO/GPV/98.07 for all 12 vaccines — replace synthetic circular validation with actual published temperature-potency pairs | 🔴 Critical for publication | High |
 | 2 | ~~**Freeze damage accumulator**~~ ✅ Done — first-order freeze kinetics implemented in `core/arrhenius.py` for all freeze-sensitive vaccines | — | — |
 | 3 | **Derive Eₐ independently** — use two published stability data points per vaccine: `ln(k₁/k₂) = -Eₐ/R · (1/T₁ − 1/T₂)` | 🟡 Strengthens paper | Medium |
-| 4 | **PyMC full Bayesian** — replace Monte Carlo with proper MCMC posterior (PyMC already in requirements); enables formal model comparison | 🟡 Research upgrade | Medium |
+| 4 | **PyMC full Bayesian** — replace Monte Carlo with proper MCMC posterior (PyMC is available via the `research` extra); enables formal model comparison | 🟡 Research upgrade | Medium |
 | 5 | **Sensitivity analysis** — show FDR reduction holds under ±10% Eₐ variation; answers the primary reviewer question | 🟡 Paper reviewer ready | Low |
 
 #### 📱 Feature Completeness
@@ -468,6 +478,18 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md), pick an issue, comment "I'll take this"
 | WHO/IVB/06.10 — *Temperature Sensitivity of Vaccines*, 2006 | MKT methodology, VVM specifications |
 | ICH Q1E — *Evaluation of Stability Data*, 2003 | Arrhenius stability framework |
 | Matthias DM et al., *Vaccine* 25:20, 2007 | Freeze event prevalence |
+
+---
+
+## Contributors
+
+Thank you to everyone who has contributed code, translations, docs, and ideas. 💙
+
+<a href="https://github.com/Santhosh-zeta/ColdGuard/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Santhosh-zeta/ColdGuard" alt="ColdGuard contributors" />
+</a>
+
+New here? Pick a [good first issue](https://github.com/Santhosh-zeta/ColdGuard/labels/good%20first%20issue), say you'd like to take it, and open a PR. You don't need to be a developer: translators, health workers, and scientists are just as welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Questions and ideas go in [Discussions](https://github.com/Santhosh-zeta/ColdGuard/discussions).
 
 ---
 
