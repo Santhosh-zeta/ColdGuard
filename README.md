@@ -153,7 +153,7 @@ print(dec.natural_language_explanation)
 
 ```bash
 PYTHONPATH=. python -m pytest tests/ -v
-# 84 passed ✅
+# 88 passed ✅
 ```
 
 ---
@@ -283,7 +283,7 @@ ColdGuard/
 │   ├── API.md                      REST API reference + Python core API
 │   └── USER_GUIDE.md              Step-by-step guide for field staff
 │
-├── 🧪 tests/                       84 tests · all passing
+├── 🧪 tests/                       88 tests · all passing
 │   ├── test_arrhenius.py           9 tests
 │   ├── test_bayesian.py            7 tests
 │   ├── test_decision.py            9 tests
@@ -335,7 +335,7 @@ timeline
     section v1.0 — Current
         Scientific engine        : Arrhenius + Monte Carlo
         Web + Mobile apps        : Streamlit + React Native
-        84 passing tests         : Full test suite
+        88 passing tests         : Full test suite
         CLI + CI pipeline        : GitHub Actions
         REST API                 : FastAPI wrapper (/analyse, /vaccines, /health)
         12 vaccines              : DPT OPV MMR BCG HepB IPV Rotavirus PCV YF JE Typhoid MenA
@@ -401,7 +401,7 @@ timeline
 **High Priority (Core Functionality)**
 | Issue | Title | Area | Effort | Assigned |
 |-------|-------|------|--------|----------|
-| [#39](https://github.com/Santhosh-zeta/ColdGuard/issues/39) | **Batch CSV import API** — `POST /batch-analyse` for processing 20+ vaccine lots in one request | REST API / Backend | 🟡 Medium | Open |
+| [#39](https://github.com/Santhosh-zeta/ColdGuard/issues/39) | **Batch CSV import API** — `POST /batch-analyse` for processing 20+ vaccine lots in one request | REST API / Backend | 🟡 Medium | Done |
 | [#38](https://github.com/Santhosh-zeta/ColdGuard/issues/38) | **API documentation** — README section, example requests/responses, deployment guide | Docs | 🟢 Easy | Open |
 | [#4](https://github.com/Santhosh-zeta/ColdGuard/issues/4) | **Real validation data** — Extract published Ea values for HepB, IPV, BCG from WHO literature | Research / Data | 🔴 Complex | @kanagarajSCK |
 

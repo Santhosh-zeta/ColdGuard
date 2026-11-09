@@ -52,7 +52,7 @@ curl http://localhost:8000/health
 | `GET` | `/health` | Liveness check |
 | `GET` | `/vaccines` | List the supported vaccines and whether each is freeze-sensitive |
 | `POST` | `/analyse` | Analyse a temperature log and return potency and a decision |
-| `POST` | `/batch-analyse` | **Coming soon.** Not yet implemented; see [Planned endpoints](#planned-endpoints) |
+| `POST` | `/batch-analyse` | Analyse many CSV logs in one request; see [`POST /batch-analyse`](#post-batch-analyse) |
 
 ---
 
@@ -142,7 +142,7 @@ Notes:
 | `decision_output.confidence` | number | Probability that the decision is correct, from 0 to 1 |
 | `decision_output.explanation` | string | Plain-language recommendation |
 | `decision_output.audit_hash` | string | SHA-256 hash of the posterior summary, for audit trails |
-| `potency_mean_pct` | number | Point-estimate potency (nominal parameters) in percent. Despite the name, this is not the Monte Carlo mean. |
+| `potency_mean_pct` | number | Posterior mean potency (Monte Carlo) in percent. |
 | `mkt_C` | number | WHO Mean Kinetic Temperature for the log, in °C |
 | `point_estimate_potency` | number | Point-estimate potency as a fraction from 0 to 1 |
 | `freeze_events` | array of object | Detected freezing intervals (empty if none). Each object has `start_ts`, `end_ts` and `min_temp_C`. |
@@ -258,11 +258,32 @@ Returns the service name, version, the path to the interactive docs, and a short
 
 ---
 
-## Planned endpoints
+## `POST /batch-analyse`
 
-### `POST /batch-analyse` (coming soon)
+Analyse many lots in one request (hospital audits, CI pipelines). Each item carries CSV text with a timestamp column and a temperature column. Items are processed independently: a bad item is returned with `"status": "error"` and does not fail the batch. Up to 100 items per request.
 
-Not implemented yet. The planned endpoint would accept many vaccine lots in one request (for example, 20 or more lots from one district store). It is tracked as a feature request. Until it ships, call `POST /analyse` once per lot.
+```bash
+curl -X POST http://localhost:8000/batch-analyse \
+  -H "Content-Type: application/json" \
+  -d '{
+    "batch": [
+      {"vaccine": "DPT", "label": "lot-A", "csv_data": "timestamp,temperature_celsius\n1694592000,5.0\n1694595600,6.0\n1694599200,4.5"},
+      {"vaccine": "BCG", "csv_data": "timestamp,temperature_celsius\n1694592000,5.0\n1694595600,5.5"}
+    ],
+    "n_mc_samples": 1000
+  }'
+```
+
+Response:
+
+```json
+{
+  "results": [{"index": 0, "label": "lot-A", "vaccine": "DPT", "status": "ok", "analysis": {"...": "same shape as POST /analyse"}}],
+  "summary": {"total": 2, "use": 2, "investigate": 0, "discard": 0, "errors": 0},
+  "generated_at": "2026-11-09T07:00:00+00:00",
+  "audit_id": "batch-1a2b3c4d5e6f"
+}
+```
 
 ---
 
@@ -286,7 +307,7 @@ run_analysis(
 Run the full ColdGuard pipeline: Arrhenius integration → Monte Carlo uncertainty propagation → decision.
 
 **Parameters:**
-- `vaccine_type` — vaccine code string, one of: `"DPT"`, `"OPV"`, `"MMR"`, `"BCG"`, `"HepB"`, `"IPV"`, `"Rotavirus"`, `"PCV"`
+- `vaccine_type` — vaccine code string, one of: `"DPT"`, `"OPV"`, `"MMR"`, `"BCG"`, `"HepB"`, `"IPV"`, `"Rotavirus"`, `"PCV"`, `"YF"`, `"JE"`, `"Typhoid"`, `"MenA"`
 - `timestamps` — Unix timestamps in seconds (float64 ndarray), monotonically increasing
 - `temperatures_C` — temperature readings in Celsius (float64 ndarray), same length as `timestamps`
 - `initial_potency` — fraction of initial potency at manufacturing date (default 1.0 = 100%)

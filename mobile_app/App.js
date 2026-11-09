@@ -6,7 +6,7 @@ import { TouchableOpacity, Text } from 'react-native';
 import InputScreen from './src/screens/InputScreen';
 import ProcessingScreen from './src/screens/ProcessingScreen';
 import ResultsScreen from './src/screens/ResultsScreen';
-import { LangContext } from './src/i18n/useTranslation';
+import { LangContext, getStrings } from './src/i18n/useTranslation';
 
 const Stack = createNativeStackNavigator();
 
@@ -15,6 +15,7 @@ const NEXT_LANG_LABELS = { en: 'हिं', hi: 'தமி', ta: 'বাং', bn
 
 export default function App() {
   const [lang, setLang] = useState('en');
+  const strings = getStrings(lang);
 
   const toggleLang = () => {
     setLang(current => {
@@ -42,8 +43,8 @@ export default function App() {
           }}
         >
           <Stack.Screen name="Input" component={InputScreen} options={{ title: '💉 ColdGuard' }} />
-          <Stack.Screen name="Processing" component={ProcessingScreen} options={{ title: 'Analyzing…', headerBackVisible: false }} />
-          <Stack.Screen name="Results" component={ResultsScreen} options={{ title: 'Result' }} />
+          <Stack.Screen name="Processing" component={ProcessingScreen} options={{ title: strings.processingTitle, headerBackVisible: false }} />
+          <Stack.Screen name="Results" component={ResultsScreen} options={{ title: strings.resultsTitle }} />
         </Stack.Navigator>
       </NavigationContainer>
     </LangContext.Provider>

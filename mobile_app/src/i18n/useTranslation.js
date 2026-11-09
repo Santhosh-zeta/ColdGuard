@@ -10,9 +10,14 @@ export const LangContext = createContext({ lang: 'en', setLang: () => {} });
 
 const TRANSLATIONS = { en, hi, ta, bn, te, kn };
 
+// Non-hook lookup for code that renders outside LangContext.Provider (e.g. App.js).
+export function getStrings(lang) {
+  return TRANSLATIONS[lang] || TRANSLATIONS.en;
+}
+
 export function useTranslation() {
   const { lang } = useContext(LangContext);
-  const strings = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  const strings = getStrings(lang);
 
   function t(key) {
     return strings[key] ?? key;
