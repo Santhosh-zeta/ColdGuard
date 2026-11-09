@@ -140,6 +140,11 @@ PYTHONPATH=. python coldguard_cli.py \
     --input data/raw/demo_dpt_power_outage.csv \
     --vaccine DPT
 
+# Validate a CSV log without running the analysis (human-readable or --json)
+PYTHONPATH=. python coldguard_cli.py \
+    --input data/raw/demo_dpt_power_outage.csv \
+    --validate-only
+
 # Output JSON report
 PYTHONPATH=. python coldguard_cli.py \
     --input data/raw/extended_excursion_25c.csv \

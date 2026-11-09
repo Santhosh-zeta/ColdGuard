@@ -1,4 +1,5 @@
 """Smoke tests for the ColdGuard CLI over every bundled scenario."""
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -41,7 +42,6 @@ def test_every_scenario_runs(csv):
 
 
 def test_json_output_is_clean_and_decision_is_a_string():
-    import json
     r = run_cli("-i", "data/raw/normal_cold_storage.csv", "-v", "DPT", "--samples", "200",
                 "--seed", "1", "--json")
     assert r.returncode == 0, r.stderr
@@ -103,3 +103,75 @@ def test_tty_color_and_overrides(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["coldguard_cli.py", "-i", csv_arg, "-v", "DPT", "--samples", "200"])
     coldguard_cli.main()
     assert "\x1b[" not in capsys.readouterr().out
+
+
+def test_validate_only_usable_csv_human_and_json():
+    r = run_cli("-i", "data/raw/demo_dpt_power_outage.csv", "--validate-only")
+    assert r.returncode == 0, r.stderr
+    assert "VALID" in r.stdout
+    assert "Readings" in r.stdout
+    assert "Time span" in r.stdout
+    assert "Sampling interval" in r.stdout
+    assert "Min / max temperature" in r.stdout
+    assert "\x1b[" not in r.stdout
+
+    rj = run_cli("-i", "data/raw/demo_dpt_power_outage.csv", "--validate-only", "--json")
+    assert rj.returncode == 0, rj.stderr
+    data = json.loads(rj.stdout)
+    assert data["usable"] is True
+    assert data["num_readings"] == 17
+    assert data["time_span_hours"] == pytest.approx(16.0)
+    assert data["sampling_interval_minutes"] == pytest.approx(60.0)
+    assert data["min_temp_C"] < data["max_temp_C"]
+    assert data["logging_gaps"] == []
+    assert data["freeze_events"] == []
+    assert data["freeze_readings"] == 0
+    assert data["non_increasing_timestamps"] == 0
+    assert data["nan_values"] == 0
+    assert data["errors"] == []
+
+
+def test_validate_only_reports_gaps_and_freeze_events():
+    r_gap = run_cli("-i", "data/raw/logging_gap.csv", "--validate-only", "--json")
+    assert r_gap.returncode == 0, r_gap.stderr
+    gap_data = json.loads(r_gap.stdout)
+    assert gap_data["usable"] is True
+    assert len(gap_data["logging_gaps"]) >= 1
+    assert any("Logging gap" in w for w in gap_data["data_quality_warnings"])
+
+    r_freeze = run_cli("-i", "data/raw/freeze_event.csv", "--validate-only", "--json")
+    assert r_freeze.returncode == 0, r_freeze.stderr
+    freeze_data = json.loads(r_freeze.stdout)
+    assert freeze_data["usable"] is True
+    assert len(freeze_data["freeze_events"]) >= 1
+    assert freeze_data["freeze_readings"] >= 1
+    assert freeze_data["min_temp_C"] < 0.0
+
+
+def test_validate_only_rejects_unusable_csvs(tmp_path):
+    # 1. NaN / blank value
+    nan_csv = tmp_path / "nan.csv"
+    nan_csv.write_text("timestamp,temperature_celsius\n0,4.0\n3600,\n7200,5.0\n", encoding="utf-8")
+    r_nan = run_cli("-i", str(nan_csv), "--validate-only", "--json")
+    assert r_nan.returncode == 1
+    nan_data = json.loads(r_nan.stdout)
+    assert nan_data["usable"] is False
+    assert nan_data["nan_values"] == 1
+    assert any("non-finite" in e for e in nan_data["errors"])
+
+    # 2. Non-increasing timestamps
+    bad_ts_csv = tmp_path / "bad_ts.csv"
+    bad_ts_csv.write_text("timestamp,temperature_celsius\n0,4.0\n7200,5.0\n3600,4.5\n", encoding="utf-8")
+    r_ts = run_cli("-i", str(bad_ts_csv), "--validate-only")
+    assert r_ts.returncode == 1
+    assert "INVALID" in r_ts.stdout
+    assert "strictly increasing" in r_ts.stdout
+
+    # 3. Fewer than 2 readings
+    short_csv = tmp_path / "short.csv"
+    short_csv.write_text("timestamp,temperature_celsius\n0,4.0\n", encoding="utf-8")
+    r_short = run_cli("validate", "-i", str(short_csv), "--json")
+    assert r_short.returncode == 1
+    short_data = json.loads(r_short.stdout)
+    assert short_data["usable"] is False
+    assert short_data["num_readings"] == 1
