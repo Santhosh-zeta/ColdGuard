@@ -384,10 +384,18 @@ def run_analysis(
         logger_accuracy_C=logger_accuracy_C,
         rng=rng,
     )
-    posterior = compute_posterior_summary(samples, threshold=params.min_potency_threshold)
+    posterior = compute_posterior_summary(
+        samples, threshold=params.min_potency_threshold
+    )
 
     # Decision
-    decision_out = make_decision(posterior, params, segments)
+    decision_out = make_decision(
+        posterior,
+        params,
+        segments,
+        freeze_events=freeze_events,
+        freeze_damage_retention=freeze_retention,
+    )
 
     return {
         "vaccine_type": vaccine_type,
