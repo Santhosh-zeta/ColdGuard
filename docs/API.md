@@ -397,6 +397,22 @@ Run the full ColdGuard pipeline: Arrhenius integration → Monte Carlo uncertain
 - `decision_output` — `DecisionOutput` dataclass
 - `potency_samples` — np.ndarray of n_mc_samples potency values
 
+### `core.decision.make_decision`
+
+`make_decision(posterior_summary, vaccine_params, segment_attribution, *,
+freeze_events=None, freeze_damage_retention=1.0)` accepts optional freeze
+context for its primary-cause explanation. `run_analysis` supplies this context
+automatically. Existing three-argument callers retain the thermal-segment explanation.
+
+For freeze-sensitive vaccines, freeze exposure is named when its modeled loss
+(`1 - freeze_damage_retention`) exceeds the total thermal loss
+(`1 - exp(-sum(segment degradation_contribution))`). The text reports the minimum
+observed freeze temperature, the elapsed intervals used by the freeze model
+(an interval counts if either endpoint is below 0°C), and the freeze-only potency
+loss percentage. Otherwise, the existing thermal explanation is used. This changes
+explanatory text only; potency estimates, decision thresholds, and audit hashes
+are unchanged.
+
 ---
 
 ## Data classes
