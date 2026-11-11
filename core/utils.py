@@ -23,7 +23,6 @@ from .bayesian import monte_carlo_potency_distribution, compute_posterior_summar
 from .decision import make_decision
 from .vaccine_params import FREEZE_THRESHOLD_C, VACCINE_DB
 
-
 # ---------------------------------------------------------------------------
 # Parsing
 # ---------------------------------------------------------------------------
@@ -109,9 +108,13 @@ def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarra
 
     found = [str(c) for c in df.columns]
     if "timestamp" not in df.columns:
-        raise ValueError(f"Cannot find timestamp column in {label}. Found columns: {found}")
+        raise ValueError(
+            f"Cannot find timestamp column in {label}. Found columns: {found}"
+        )
     if "temperature_celsius" not in df.columns:
-        raise ValueError(f"Cannot find temperature column in {label}. Found columns: {found}")
+        raise ValueError(
+            f"Cannot find temperature column in {label}. Found columns: {found}"
+        )
 
     # Convert timestamps
     ts_raw = df["timestamp"]
@@ -172,6 +175,7 @@ def parse_json_log(data_dict: Dict[str, Any]) -> Tuple[np.ndarray, np.ndarray]:
 # ---------------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------------
+
 
 def validate_temperature_log(
     timestamps: np.ndarray, temperatures: np.ndarray
@@ -280,6 +284,7 @@ def detect_logging_gaps(
 # Full pipeline runner
 # ---------------------------------------------------------------------------
 
+
 def run_analysis(
     vaccine_type: str,
     timestamps: np.ndarray,
@@ -384,10 +389,18 @@ def run_analysis(
         logger_accuracy_C=logger_accuracy_C,
         rng=rng,
     )
-    posterior = compute_posterior_summary(samples, threshold=params.min_potency_threshold)
+    posterior = compute_posterior_summary(
+        samples, threshold=params.min_potency_threshold
+    )
 
     # Decision
-    decision_out = make_decision(posterior, params, segments)
+    decision_out = make_decision(
+        posterior,
+        params,
+        segments,
+        freeze_events=freeze_events,
+        freeze_damage_retention=freeze_retention,
+    )
 
     return {
         "vaccine_type": vaccine_type,

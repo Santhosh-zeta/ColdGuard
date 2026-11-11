@@ -1,10 +1,10 @@
 {
   "name": "coldguard-mobile",
   "version": "1.0.0",
-  "description": "ColdGuard vaccine potency estimator – React Native / Expo app",
+  "description": "ColdGuard vaccine potency estimator \u2013 React Native / Expo app",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "expo start",
+    "start": "node init && expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",

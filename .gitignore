@@ -19,7 +19,6 @@ wheels/
 .installed.cfg
 pip-selfcheck.json
 
-.env
 .venv
 env/
 venv/
@@ -27,7 +26,6 @@ ENV/
 
 .DS_Store
 .idea/
-.vscode/
 *.swp
 *.swo
 *~
@@ -44,3 +42,4 @@ htmlcov/
 node_modules/
 .expo/
 *.lock
+config.bat
