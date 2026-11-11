@@ -6,15 +6,17 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from .vaccine_params import VaccineParams
+from .vaccine_params import FREEZE_THRESHOLD_C, VaccineParams
 
 
 class Decision(Enum):
     """Tri-state recommendation for vaccine batch disposition."""
+
     USE = "USE"
     INVESTIGATE = "INVESTIGATE"
     DISCARD = "DISCARD"
@@ -25,22 +27,26 @@ class DecisionOutput:
     """Full structured output of the decision engine."""
 
     decision: Decision
-    confidence: float                        # P(potency > threshold)
-    estimated_potency_pct: float             # posterior mean × 100
-    ci_90: Tuple[float, float]               # (lower, upper) percentiles × 100
-    primary_degradation_cause: str           # human-readable root cause
-    natural_language_explanation: str        # paragraph for health worker
-    audit_hash: str                          # SHA-256 of posterior_summary
+    confidence: float  # P(potency > threshold)
+    estimated_potency_pct: float  # posterior mean × 100
+    ci_90: Tuple[float, float]  # (lower, upper) percentiles × 100
+    primary_degradation_cause: str  # human-readable root cause
+    natural_language_explanation: str  # paragraph for health worker
+    audit_hash: str  # SHA-256 of posterior_summary
 
 
 # ---------------------------------------------------------------------------
 # Core decision logic
 # ---------------------------------------------------------------------------
 
+
 def make_decision(
     posterior_summary: Dict[str, float],
     vaccine_params: VaccineParams,
     segment_attribution: List[Dict[str, Any]],
+    *,
+    freeze_events: Optional[List[Dict[str, Any]]] = None,
+    freeze_damage_retention: float = 1.0,
 ) -> DecisionOutput:
     """Translate a Monte-Carlo posterior into a decision.
 
@@ -58,6 +64,11 @@ def make_decision(
         Parameters for the vaccine under assessment.
     segment_attribution : list of dict
         Per-segment degradation from compute_segment_attribution.
+    freeze_events : list of dict, optional
+        Observed events from detect_freeze_events, including min_temp_C.
+    freeze_damage_retention : float
+        Retention factor from compute_freeze_damage_fraction. Used only to
+        explain the cause; decision thresholds and the posterior are unchanged.
 
     Returns
     -------
@@ -75,6 +86,7 @@ def make_decision(
     else:
         # Fallback: compute from mean/std approximation
         from scipy import stats  # local import to avoid hard dep at module level
+
         mean = posterior_summary["mean"]
         std = posterior_summary["std"]
         p_ok = float(1.0 - stats.norm.cdf(threshold, loc=mean, scale=std))
@@ -86,8 +98,14 @@ def make_decision(
     else:
         decision = Decision.DISCARD
 
-    primary_cause = _identify_primary_cause(segment_attribution)
-    explanation = _generate_explanation(decision, posterior_summary, primary_cause, vaccine_params)
+    primary_cause = _identify_primary_cause(
+        segment_attribution,
+        freeze_events,
+        freeze_damage_retention if vaccine_params.freeze_sensitive else 1.0,
+    )
+    explanation = _generate_explanation(
+        decision, posterior_summary, primary_cause, vaccine_params
+    )
     audit_hash = _compute_audit_hash(posterior_summary)
 
     return DecisionOutput(
@@ -108,8 +126,30 @@ def make_decision(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _identify_primary_cause(segment_attribution: List[Dict[str, Any]]) -> str:
-    """Return a plain-language description of the segment with most degradation."""
+
+def _identify_primary_cause(
+    segment_attribution: List[Dict[str, Any]],
+    freeze_events: Optional[List[Dict[str, Any]]] = None,
+    freeze_damage_retention: float = 1.0,
+) -> str:
+    """Describe freeze damage when dominant, otherwise the worst thermal segment."""
+    thermal_loss = -math.expm1(
+        -sum(segment["degradation_contribution"] for segment in segment_attribution)
+    )
+    freeze_loss = 1.0 - freeze_damage_retention
+    if freeze_events and freeze_loss > thermal_loss:
+        min_temp = min(event["min_temp_C"] for event in freeze_events)
+        # Match the freeze model: an interval counts if either endpoint is frozen.
+        duration = sum(
+            segment["duration_hours"]
+            for segment in segment_attribution
+            if min(segment["start_temp_C"], segment["end_temp_C"]) < FREEZE_THRESHOLD_C
+        )
+        return (
+            f"Freeze exposure (min {min_temp:.1f}°C for {duration:.1f} h), "
+            f"reducing potency by {freeze_loss * 100:.1f}% through freeze damage"
+        )
+
     if not segment_attribution:
         return "Insufficient data to identify cause."
 
