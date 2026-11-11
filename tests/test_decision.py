@@ -1,7 +1,9 @@
 """Tests for core.decision — decision support engine."""
+
 import sys
 import os
 from pathlib import Path
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
@@ -47,10 +49,12 @@ def test_low_potency_gives_discard_decision(dpt):
 
 def test_investigate_for_borderline(dpt):
     # Build a distribution where P(>0.80) is between 0.70 and 0.90
-    samples = np.concatenate([
-        np.random.uniform(0.81, 0.95, 4000),  # above threshold
-        np.random.uniform(0.60, 0.80, 3000),  # below threshold
-    ])
+    samples = np.concatenate(
+        [
+            np.random.uniform(0.81, 0.95, 4000),  # above threshold
+            np.random.uniform(0.60, 0.80, 3000),  # below threshold
+        ]
+    )
     summary = compute_posterior_summary(samples)
     result = make_decision(summary, dpt, _empty_attribution())
     assert result.decision in (Decision.INVESTIGATE, Decision.DISCARD, Decision.USE)
@@ -79,7 +83,10 @@ def test_audit_hash_is_nonempty_string(dpt):
 def test_explanation_contains_vaccine_name(dpt):
     summary = _make_summary(high_potency=True)
     result = make_decision(summary, dpt, _empty_attribution())
-    assert "DPT" in result.natural_language_explanation or "Diphtheria" in result.natural_language_explanation
+    assert (
+        "DPT" in result.natural_language_explanation
+        or "Diphtheria" in result.natural_language_explanation
+    )
 
 
 def test_estimated_potency_pct_in_valid_range(dpt):
@@ -100,6 +107,7 @@ def test_decision_uses_exact_threshold_probability():
     import numpy as np
     from core.vaccine_params import VACCINE_DB
     from dataclasses import replace
+
     samples = np.full(1000, 0.85)
     summary = compute_posterior_summary(samples, threshold=0.90)
     assert summary["prob_above_threshold"] == 0.0
