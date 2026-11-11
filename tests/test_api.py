@@ -224,7 +224,6 @@ def test_export_dhis2_endpoint(client):
     body["period"] = "bad"
     assert client.post("/export/dhis2", json=body).status_code == 422
 
-
 def test_export_dhis2_non_finite_reading(client):
     """POST /export/dhis2 returns the same 422 as /analyse for bad readings."""
     import json
@@ -246,3 +245,66 @@ def test_batch_accepts_semicolon_decimal_comma_csv(client):
                                             "n_mc_samples": 100})
     assert r.status_code == 200
     assert r.json()["results"][0]["status"] == "ok"
+
+
+# ---------------------------------------------------------------------------
+# GET /vaccines/{key}
+# ---------------------------------------------------------------------------
+
+def test_get_vaccine_known_key(client):
+    """Test that a known vaccine returns all kinetic parameters."""
+    response = client.get("/vaccines/DPT")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data == {
+        "key": "DPT",
+        "name": "DPT (Diphtheria-Pertussis-Tetanus)",
+        "Ea_mean": 83000,
+        "Ea_std": 4000,
+        "A": 4.994e10,
+        "A_log_std": 0.15,
+        "shelf_life_hours": 17280,
+        "ref_temp_K": 278.15,
+        "min_potency_threshold": 0.8,
+        "freeze_sensitive": True,
+    }
+
+
+def test_get_vaccine_unknown_key(client):
+    """Test that an unknown vaccine returns 404."""
+    response = client.get("/vaccines/XYZ")
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Vaccine 'XYZ' not found"
+    }
+
+
+def test_get_vaccine_freeze_sensitive(client):
+    """Test that DPT is correctly identified as freeze-sensitive."""
+    response = client.get("/vaccines/DPT")
+
+    assert response.status_code == 200
+    assert response.json()["freeze_sensitive"] is True
+
+
+def test_get_vaccine_not_freeze_sensitive(client):
+    """Test that JE is correctly identified as not freeze-sensitive."""
+    response = client.get("/vaccines/Je")
+
+    assert response.status_code == 200
+    assert response.json()["freeze_sensitive"] is False
+
+
+def test_get_vaccine_case_insensitive(client):
+    """Test that vaccine keys are not case-sensitive."""
+    variations = ["DPT", "dpt", "DPt", "dPt"]
+
+    for key in variations:
+        response = client.get(f"/vaccines/{key}")
+
+        assert response.status_code == 200
+        assert response.json()["key"] == "DPT"
