@@ -1,6 +1,8 @@
 """Bounded fuzzing of logger inputs and API request validation."""
 import io
 import json
+import subprocess
+import sys
 
 import numpy as np
 import pytest
@@ -8,7 +10,7 @@ from fastapi.testclient import TestClient
 from hypothesis import given, settings, strategies as st
 from pydantic import ValidationError
 
-from api.main import AnalysisRequest, app
+from api.main import AnalysisRequest, BatchRequest, DHIS2ExportRequest, app
 from core.utils import parse_csv_log, parse_json_log
 
 HEADER = "timestamp,temperature_celsius\n"
@@ -126,6 +128,30 @@ def test_api_model_handles_arbitrary_json(timestamps, temperatures):
     assert all(-30 <= t <= 60 for t in request.temperatures_c)
 
 
+@settings(max_examples=100, deadline=1000)
+@given(timestamps=JSON_VALUES, temperatures=JSON_VALUES)
+def test_export_model_handles_arbitrary_json(timestamps, temperatures):
+    try:
+        request = DHIS2ExportRequest.model_validate({
+            "vaccine": "DPT", "timestamps": timestamps, "temperatures_c": temperatures,
+            "org_unit": "FAC123",
+        })
+    except ValidationError:
+        return
+    assert len(request.timestamps) == len(request.temperatures_c) >= 2
+    assert all(b > a for a, b in zip(request.timestamps, request.timestamps[1:]))
+
+
+@settings(max_examples=100, deadline=1000)
+@given(batch=JSON_VALUES)
+def test_batch_model_handles_arbitrary_json(batch):
+    try:
+        request = BatchRequest.model_validate({"batch": batch})
+    except ValidationError:
+        return
+    assert 1 <= len(request.batch) <= 100
+
+
 @pytest.mark.parametrize(
     "body",
     [
@@ -153,3 +179,18 @@ def test_million_row_csv(tmp_path):
     assert timestamps[0] == 0 and timestamps[-1] == (count - 1) * 60
     assert np.all(temperatures == 5.0)
     assert timestamps.nbytes + temperatures.nbytes == count * 16
+    if sys.platform == "linux":
+        # A fresh process avoids counting high-water marks from earlier pytest tests.
+        # Keep this intentionally generous: it guards against gross memory regressions,
+        # not against modest changes in pandas or the Python allocator.
+        script = """
+import resource
+import sys
+from core.utils import parse_csv_log
+baseline = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+timestamps, temperatures = parse_csv_log(sys.argv[1])
+peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+assert len(timestamps) == len(temperatures) == 1_000_000
+assert peak - baseline < 512 * 1024, (baseline, peak)
+"""
+        subprocess.run([sys.executable, "-c", script, str(path)], check=True, timeout=60)
