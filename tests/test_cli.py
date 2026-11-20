@@ -166,6 +166,17 @@ def test_validate_only_rejects_unusable_csvs(tmp_path):
     assert r_ts.returncode == 1
     assert "INVALID" in r_ts.stdout
     assert "strictly increasing" in r_ts.stdout
+    r_ts_json = run_cli("-i", str(bad_ts_csv), "--validate-only", "--json")
+    assert r_ts_json.returncode == 1
+    report = json.loads(r_ts_json.stdout)
+    assert report["usable"] is False
+    assert report["num_readings"] == 3
+    assert report["non_increasing_timestamps"] == 1
+    assert any("strictly increasing" in error for error in report["errors"])
+
+    r_analysis = run_cli("-i", str(bad_ts_csv), "-v", "DPT")
+    assert r_analysis.returncode == 1
+    assert "strictly increasing" in r_analysis.stderr
 
     # 3. Fewer than 2 readings
     short_csv = tmp_path / "short.csv"
@@ -175,3 +186,20 @@ def test_validate_only_rejects_unusable_csvs(tmp_path):
     short_data = json.loads(r_short.stdout)
     assert short_data["usable"] is False
     assert short_data["num_readings"] == 1
+
+
+def test_validate_only_reports_structural_csv_errors(tmp_path):
+    bad_csv = tmp_path / "duplicate.csv"
+    bad_csv.write_text(
+        "timestamp,timestamp,temperature_celsius\n0,1,4\n1,2,5\n",
+        encoding="utf-8",
+    )
+    result = run_cli("-i", str(bad_csv), "--validate-only")
+    assert result.returncode == 1
+    assert "INVALID" in result.stdout
+    assert "Duplicate or ambiguous columns" in result.stdout
+    result_json = run_cli("-i", str(bad_csv), "--validate-only", "--json")
+    assert result_json.returncode == 1
+    report = json.loads(result_json.stdout)
+    assert report["usable"] is False
+    assert any("Duplicate or ambiguous columns" in error for error in report["errors"])

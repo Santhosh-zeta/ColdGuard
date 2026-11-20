@@ -103,18 +103,24 @@ def _check_csv_structure(text: str, delimiter: str, label: str) -> None:
         raise ValueError(f"Failed to parse CSV file {label}: {exc}") from exc
 
 
-def _check_parsed_log(timestamps: np.ndarray, temperatures: np.ndarray) -> None:
+def _check_parsed_log(
+    timestamps: np.ndarray, temperatures: np.ndarray, *, diagnostic: bool = False
+) -> None:
     if timestamps.ndim != 1 or temperatures.ndim != 1:
         raise ValueError("Timestamps and temperatures must be one-dimensional arrays")
     if len(timestamps) != len(temperatures) or not len(timestamps):
         raise ValueError("Timestamps and temperatures must have equal non-empty lengths")
+    if diagnostic:
+        return
     if not np.all(np.isfinite(timestamps)):
         raise ValueError("Timestamps must be finite")
     if np.any(timestamps[1:] <= timestamps[:-1]):
         raise ValueError("Timestamps must be strictly increasing")
 
 
-def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarray]:
+def parse_csv_log(
+    filepath: Union[str, Path, IO], *, diagnostic: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     """Parse a temperature log CSV (a path or an open text/binary file object).
 
     Expected columns: ``timestamp`` (ISO-8601 or Unix) and a temperature column
@@ -125,6 +131,11 @@ def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarra
     - delimiter: comma, semicolon, tab or pipe (detected from the header line)
     - decimal separator: dot or comma (``5,2``)
     - UTF-8 byte-order mark, and Windows (cp1252) encoding
+
+    By default timestamps must be finite and strictly increasing.
+    The CLI's validation-only mode can set diagnostic=True to inspect
+    invalid timestamps and report data-quality errors without running analysis.
+    Structural CSV checks still apply.
 
     Returns
     -------
@@ -193,7 +204,7 @@ def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarra
                 "is not a number"
             )
         temperatures_C = numeric.values.astype(float)
-    _check_parsed_log(timestamps, temperatures_C)
+    _check_parsed_log(timestamps, temperatures_C, diagnostic=diagnostic)
     return timestamps, temperatures_C
 
 

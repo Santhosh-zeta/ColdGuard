@@ -188,7 +188,9 @@ def main():
         sys.exit(1)
 
     try:
-        timestamps, temperatures = parse_csv_log(str(csv_path))
+        timestamps, temperatures = parse_csv_log(
+            str(csv_path), diagnostic=args.validate_only
+        )
     except Exception as exc:
         if args.validate_only and (args.json or args.output):
             err_report = {
@@ -213,6 +215,10 @@ def main():
                 print(f"JSON report written to {args.output}")
             else:
                 print(json_text)
+        elif args.validate_only:
+            print(f"ColdGuard Log Validation — {args.input}")
+            print("INVALID — Log cannot be analysed.")
+            print(f"Errors: {exc}")
         print(f"Error parsing CSV: {exc}", file=sys.stderr)
         sys.exit(1)
 
