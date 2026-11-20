@@ -4,6 +4,7 @@ I/O utilities and the top-level pipeline runner for ColdGuard.
 
 from __future__ import annotations
 
+import csv
 import io
 from pathlib import Path
 from typing import IO, Any, Dict, List, Optional, Tuple, Union
@@ -64,7 +65,62 @@ def _detect_delimiter(text: str) -> str:
     return best if counts[best] > 0 else ","
 
 
-def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarray]:
+def _column_role(name: str) -> Optional[str]:
+    low = name.strip().lower().replace(" ", "_").replace("-", "_")
+    if low in ("timestamp", "ts", "time", "datetime"):
+        return "timestamp"
+    if "temp" in low or low in ("t_c", "tc"):
+        return "temperature_celsius"
+    return None
+
+
+def _check_csv_structure(text: str, delimiter: str, label: str) -> None:
+    # pandas can silently rename duplicate headers or infer an index from extra fields.
+    if "\x00" in text:
+        raise ValueError(f"CSV file {label} contains a NUL character")
+    try:
+        reader = csv.reader(io.StringIO(text, newline=""), delimiter=delimiter,
+                            skipinitialspace=True, strict=True)
+        records = (
+            row for row in reader
+            if row and not (len(row) == 1 and not row[0].strip())
+        )
+        header = next(records, None)
+        if header is None:
+            return
+        names = [name.strip().lower() for name in header]
+        roles = [_column_role(name) for name in header]
+        roles = [role for role in roles if role is not None]
+        if len(set(names)) != len(names) or len(set(roles)) != len(roles):
+            raise ValueError(f"Duplicate or ambiguous columns in {label}")
+        for row in records:
+            if len(row) != len(header):
+                raise ValueError(
+                    f"CSV row ending at line {reader.line_num} in {label} has "
+                    f"{len(row)} fields; expected {len(header)}"
+                )
+    except csv.Error as exc:
+        raise ValueError(f"Failed to parse CSV file {label}: {exc}") from exc
+
+
+def _check_parsed_log(
+    timestamps: np.ndarray, temperatures: np.ndarray, *, diagnostic: bool = False
+) -> None:
+    if timestamps.ndim != 1 or temperatures.ndim != 1:
+        raise ValueError("Timestamps and temperatures must be one-dimensional arrays")
+    if len(timestamps) != len(temperatures) or not len(timestamps):
+        raise ValueError("Timestamps and temperatures must have equal non-empty lengths")
+    if diagnostic:
+        return
+    if not np.all(np.isfinite(timestamps)):
+        raise ValueError("Timestamps must be finite")
+    if np.any(timestamps[1:] <= timestamps[:-1]):
+        raise ValueError("Timestamps must be strictly increasing")
+
+
+def parse_csv_log(
+    filepath: Union[str, Path, IO], *, diagnostic: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     """Parse a temperature log CSV (a path or an open text/binary file object).
 
     Expected columns: ``timestamp`` (ISO-8601 or Unix) and a temperature column
@@ -75,6 +131,11 @@ def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarra
     - delimiter: comma, semicolon, tab or pipe (detected from the header line)
     - decimal separator: dot or comma (``5,2``)
     - UTF-8 byte-order mark, and Windows (cp1252) encoding
+
+    By default timestamps must be finite and strictly increasing.
+    The CLI's validation-only mode can set diagnostic=True to inspect
+    invalid timestamps and report data-quality errors without running analysis.
+    Structural CSV checks still apply.
 
     Returns
     -------
@@ -91,6 +152,7 @@ def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarra
     """
     text, label = _read_text(filepath)
     delimiter = _detect_delimiter(text)
+    _check_csv_structure(text, delimiter, label)
     try:
         df = pd.read_csv(io.StringIO(text), sep=delimiter, skipinitialspace=True)
     except (pd.errors.ParserError, pd.errors.EmptyDataError) as exc:
@@ -99,11 +161,9 @@ def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarra
     # Normalise column names
     col_map = {}
     for col in df.columns:
-        low = str(col).strip().lower().replace(" ", "_").replace("-", "_")
-        if low in ("timestamp", "ts", "time", "datetime"):
-            col_map[col] = "timestamp"
-        elif "temp" in low or low in ("t_c", "tc"):
-            col_map[col] = "temperature_celsius"
+        role = _column_role(str(col))
+        if role is not None:
+            col_map[col] = role
     df = df.rename(columns=col_map)
 
     found = [str(c) for c in df.columns]
@@ -118,12 +178,15 @@ def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarra
 
     # Convert timestamps
     ts_raw = df["timestamp"]
-    if pd.api.types.is_numeric_dtype(ts_raw):
-        timestamps = ts_raw.values.astype(float)
-    else:
-        timestamps = np.array(
-            [dtparser.parse(str(t)).timestamp() for t in ts_raw], dtype=float
-        )
+    try:
+        if pd.api.types.is_numeric_dtype(ts_raw):
+            timestamps = ts_raw.values.astype(float)
+        else:
+            timestamps = np.array(
+                [dtparser.parse(str(t)).timestamp() for t in ts_raw], dtype=float
+            )
+    except (ValueError, TypeError, OverflowError, OSError) as exc:
+        raise ValueError(f"Invalid timestamp in {label}: {exc}") from exc
 
     # Temperatures: numbers as-is; text columns may use a decimal comma ("5,2").
     temp_raw = df["temperature_celsius"]
@@ -141,6 +204,7 @@ def parse_csv_log(filepath: Union[str, Path, IO]) -> Tuple[np.ndarray, np.ndarra
                 "is not a number"
             )
         temperatures_C = numeric.values.astype(float)
+    _check_parsed_log(timestamps, temperatures_C, diagnostic=diagnostic)
     return timestamps, temperatures_C
 
 
@@ -155,20 +219,27 @@ def parse_json_log(data_dict: Dict[str, Any]) -> Tuple[np.ndarray, np.ndarray]:
     timestamps : np.ndarray  (Unix seconds)
     temperatures_C : np.ndarray  (°C)
     """
+    if not isinstance(data_dict, dict):
+        raise ValueError("Temperature log JSON must be an object")
     raw_ts = data_dict.get("timestamps", data_dict.get("timestamp", []))
     raw_tc = data_dict.get("temperatures_C", data_dict.get("temperature_celsius", []))
 
-    if not raw_ts or not raw_tc:
-        raise ValueError("data_dict must have 'timestamps' and 'temperatures_C' keys")
+    if not isinstance(raw_ts, list) or not isinstance(raw_tc, list) or not raw_ts or not raw_tc:
+        raise ValueError("data_dict must have non-empty 'timestamps' and 'temperatures_C' lists")
 
-    if isinstance(raw_ts[0], (int, float)):
-        timestamps = np.asarray(raw_ts, dtype=float)
-    else:
-        timestamps = np.array(
-            [dtparser.parse(str(t)).timestamp() for t in raw_ts], dtype=float
-        )
-
-    temperatures_C = np.asarray(raw_tc, dtype=float)
+    try:
+        if all(isinstance(t, (int, float)) and not isinstance(t, bool) for t in raw_ts):
+            timestamps = np.asarray(raw_ts, dtype=float)
+        elif all(isinstance(t, str) for t in raw_ts):
+            timestamps = np.array(
+                [dtparser.parse(t).timestamp() for t in raw_ts], dtype=float
+            )
+        else:
+            raise ValueError("Timestamps must be all numbers or all date strings")
+        temperatures_C = np.asarray(raw_tc, dtype=float)
+    except (TypeError, OverflowError, OSError, ValueError) as exc:
+        raise ValueError(f"Invalid JSON temperature log: {exc}") from exc
+    _check_parsed_log(timestamps, temperatures_C)
     return timestamps, temperatures_C
 
 
