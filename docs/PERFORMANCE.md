@@ -36,10 +36,24 @@ an actual Android timing or a comparison with the JavaScript implementation.
 
 ## Baseline results
 
-Record the median, mean and standard deviation reported by pytest-benchmark,
-along with CPU, operating system, Python and NumPy versions. An initial baseline
-must be measured before setting performance expectations; no fixed timing
-threshold is used because execution time depends on hardware and load.
+Initial contributor-measured baseline (2026-11-20), in milliseconds per call:
+
+| Case | Median (ms) | Mean (ms) | Std. dev. (ms) | Rounds |
+| --- | ---: | ---: | ---: | ---: |
+| Mobile-sized input | 1.9152 | 1.9163 | 0.1300 | 7 |
+| Many samples | 257.0337 | 261.0607 | 41.8610 | 7 |
+| Large log | 559.5165 | 616.4456 | 117.7548 | 7 |
+
+Environment: Windows 11 (build 26300), Intel64 Family 6 Model 154
+Stepping 4 (GenuineIntel), Python 3.13.3, NumPy 2.5.5, pytest 9.2.0,
+pytest-benchmark 5.3.1. All three benchmark tests passed, and the separate
+ordinary suite passed 155 tests without collecting the benchmarks.
+
+This is one local run, not a hardware-independent performance guarantee.
+The relatively large variation in the large-log and many-samples cases
+makes repeated measurements useful before interpreting small changes.
+No fixed timing threshold is used because execution time depends on
+hardware and load. No phone or Linux timing is inferred from these results.
 
 ## Profiling and memory
 
