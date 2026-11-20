@@ -61,10 +61,62 @@ New to the project? Start with the issues labelled
 
 ## Development Setup
 
+### Quick start in 5 minutes
+
+The development container provides Python 3.11, Node.js 22 and GNU Make.
+The first build and dependency downloads can take longer than five minutes,
+depending on your connection and machine.
+
+**GitHub Codespaces:** Open your fork on GitHub, choose **Code → Codespaces →
+Create codespace** on your working branch. The container builds and installs
+Python and mobile dependencies automatically. Once setup finishes, open a
+terminal and run `make test`, `make lint` and `make mobile-test`.
+Codespaces usage may count against your account's included quota.
+
+**VS Code locally:** Install Docker and the Dev Containers extension, open
+your checkout, then choose **Dev Containers: Reopen in Container** from the
+Command Palette. The same configuration installs dependencies into the
+workspace's `.venv` and `mobile_app/node_modules`.
+
+**Without a container (Linux, macOS or WSL):** Install Python 3.11+, Node.js 22,
+GNU Make and Git. From the checkout root:
+
+```bash
+python -m venv .venv
+make install
+make test
+make lint
+make mobile-test
+```
+
+| Command | Purpose |
+| --- | --- |
+| `make install` | Install the editable Python package with web, API and dev extras, and install mobile dependencies with npm ci |
+| `make test` | Run the Python correctness suite |
+| `make lint` | Run the same Ruff checks as CI |
+| `make api` | Start the API on port 8000 |
+| `make web` | Start the Streamlit app on port 8501 |
+| `make mobile-test` | Run mobile Jest tests in CI mode |
+
+Run the API and web targets in separate terminals. In a Codespace or dev
+container, open the forwarded port from VS Code's Ports panel. Locally,
+visit `http://127.0.0.1:8000/docs` or `http://127.0.0.1:8501`.
+
+Make uses `.venv/bin/python` when present; otherwise it uses `python` from the
+current PATH. Override with `make test PYTHON=/path/to/python` if needed.
+The editable installation lets imports work without setting PYTHONPATH.
+
+These servers are local development services, not production deployments.
+They bind to loopback by default. Keep forwarded Codespaces ports private
+unless you have deliberately secured the application.
+
+On native Windows without Make, activate a virtual environment and use the
+direct Python/npm commands below rather than these Make targets.
+
 ### Prerequisites
 
 - Python 3.11+
-- Node.js 18+ and npm (for mobile app)
+- Node.js 22 and npm (matches mobile CI)
 - Git
 
 ### Clone and install
@@ -77,22 +129,21 @@ cd ColdGuard
 pip install -e ".[web,api,dev]"
 
 # Run tests to verify setup
-PYTHONPATH=. python -m pytest tests/ -v
-# Expected: 107 passed
+python -m pytest tests/ -v
 ```
 
 ### Mobile app setup
 
 ```bash
 cd mobile_app
-npm install
+npm ci
 npx expo start          # opens Expo Go on your device
 ```
 
 ### Quick smoke test
 
 ```bash
-PYTHONPATH=. python coldguard_cli.py \
+python coldguard_cli.py \
     --input data/raw/demo_dpt_power_outage.csv \
     --vaccine DPT
 ```
